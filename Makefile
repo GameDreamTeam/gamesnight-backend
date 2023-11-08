@@ -1,50 +1,24 @@
 .DEFAULT_GOAL := help
 
-include .env
-export
+# Load .env file in the application, not in the Makefile
+# include .env
+# export
 
-# Export them as environment variables
-export TF_VAR_access_key = $(ACCESS_KEY)
-export TF_VAR_secret_key = $(SECRET_KEY)
-export TF_VAR_region = $(REGION)
+# Define 'run' as depending on 'format' and 'build'
+run: format build
+	@echo "Formatting, Building and Running"
+	./bin/charades
 
-apply-dev:
-	@echo "Applying Terraform changes for the dev environment"
-	terraform fmt
-	terraform apply -var-file="$(TF_VARS_DEV)"
+format:
+	@echo "Formatting"
+	go fmt ./...
 
-apply-prod:
-	@echo "Applying Terraform changes for the prod environment"
-	terraform fmt
-	terraform apply -var-file="$(TF_VARS_PROD)"
-
-plan-dev:
-	@echo "Planning Terraform changes for the dev environment"
-	terraform fmt
-	terraform plan -var-file="$(TF_VARS_DEV)"
-
-plan-prod:
-	@echo "Planning Terraform changes for the prod environment"
-	terraform fmt
-	terraform plan -var-file="$(TF_VARS_PROD)"
-
-destroy-dev:
-	@echo "Destroying Terraform changes for the dev environment"
-	terraform fmt
-	terraform destroy -var-file="$(TF_VARS_DEV)"
-
-destroy-prod:
-	@echo "Destroying Terraform changes for the prod environment"
-	terraform fmt
-	terraform destroy -var-file="$(TF_VARS_PROD)"
+build:
+	@echo "Building"
+	go build -o ./bin/charades ./cmd/charades
 
 help:
 	@echo "Available commands:"
-	@echo "  make apply-dev    - Apply Terraform changes for the dev environment"
-	@echo "  make apply-prod   - Apply Terraform changes for the prod environment"
-	@echo "  make plan-dev     - Plan Terraform changes for the dev environment"
-	@echo "  make plan-prod    - Plan Terraform changes for the prod environment"
-	@echo "  make destroy-dev  - Destroy Terraform changes for the dev environment"
-	@echo "  make destroy-prod - Destroy Terraform changes for the prod environment"
-	@echo "  ssh -i ~/.ssh/aws_personal ec2-user@13.233.79.220"
-	@echo "  ssh -i ~/.ssh/aws_personal ubuntu@13.235.243.206"
+	@echo "  make format   - Formatting Repository"
+	@echo "  make build    - Building Repository"
+	@echo "  make run      - Starting Server"
