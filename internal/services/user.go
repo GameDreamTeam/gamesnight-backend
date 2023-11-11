@@ -21,7 +21,7 @@ func (us *UserService) CreateNewUser() (*models.User, error) {
 	key, err := GetKeyGenerator().CreateUserKey()
 
 	if err != nil {
-		fmt.Println("Error in creating user key %s", err)
+		fmt.Printf("Error in creating user key %s", err)
 		return nil, err
 	}
 

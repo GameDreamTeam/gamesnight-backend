@@ -2,7 +2,6 @@ package services
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 )
 
@@ -19,7 +18,7 @@ func GetKeyGenerator() *KeyGenerator {
 }
 
 func (kg *KeyGenerator) CreateUserKey() (string, error) {
-	key, err := generateSecureKey(6)
+	key, err := generateSecureKey(8)
 
 	if err != nil {
 		fmt.Printf("Error in generating key %s", err)
@@ -41,6 +40,7 @@ func (kg *KeyGenerator) CreateGameKey() (string, error) {
 }
 
 func generateSecureKey(length int) (string, error) {
+	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	bytes := make([]byte, length)
 	_, err := rand.Read(bytes)
 	if err != nil {
@@ -48,5 +48,9 @@ func generateSecureKey(length int) (string, error) {
 		return "", err
 	}
 
-	return base64.URLEncoding.EncodeToString(bytes), nil
+	for i, b := range bytes {
+		bytes[i] = letters[b%byte(len(letters))]
+	}
+
+	return string(bytes), nil
 }
