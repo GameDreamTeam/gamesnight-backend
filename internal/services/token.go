@@ -22,10 +22,10 @@ func GetTokenService() *TokenService {
 	return ts
 }
 
-func (ts *TokenService) CreateUserToken(userId string) (*models.Token, error) {
+func (ts *TokenService) CreatePlayerToken(playerId string) (*models.Token, error) {
 	expirationTime := time.Now().Add(30 * 24 * time.Hour)
-	claims := &models.UserJWTClaims{
-		UserId: userId,
+	claims := &models.PlayerJWTClaims{
+		PlayerId: playerId,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
@@ -45,8 +45,8 @@ func (ts *TokenService) CreateUserToken(userId string) (*models.Token, error) {
 	return t, nil
 }
 
-func (ts *TokenService) ParseUserToken(tokenString string) (*models.User, error) {
-	claims := &models.UserJWTClaims{}
+func (ts *TokenService) ParsePlayerToken(tokenString string) (*models.Player, error) {
+	claims := &models.PlayerJWTClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
@@ -58,9 +58,9 @@ func (ts *TokenService) ParseUserToken(tokenString string) (*models.User, error)
 	}
 
 	// Check if the token is valid and has expected claims
-	if claims, ok := token.Claims.(*models.UserJWTClaims); ok && token.Valid {
-		return &models.User{
-			UserId: &claims.UserId,
+	if claims, ok := token.Claims.(*models.PlayerJWTClaims); ok && token.Valid {
+		return &models.Player{
+			Id: &claims.PlayerId,
 		}, nil
 	} else {
 		return nil, fmt.Errorf("Invalid token")

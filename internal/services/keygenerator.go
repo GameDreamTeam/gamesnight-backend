@@ -17,7 +17,7 @@ func GetKeyGenerator() *KeyGenerator {
 	return kg
 }
 
-func (kg *KeyGenerator) CreateUserKey() (string, error) {
+func (kg *KeyGenerator) CreatePlayerKey() (string, error) {
 	const letters = "0123456789abcdefghijklmnopqrstuvwxyz"
 	key, err := generateSecureKey(8, letters)
 

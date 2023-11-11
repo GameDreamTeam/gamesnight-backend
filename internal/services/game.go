@@ -19,7 +19,7 @@ func GetGameService() *GameService {
 	return gs
 }
 
-func (gs *GameService) CreateNewGame(user *models.User) (*models.Game, error) {
+func (gs *GameService) CreateNewGame(player *models.Player) (*models.Game, error) {
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
 	//Check if game already exists before returning this
@@ -30,9 +30,9 @@ func (gs *GameService) CreateNewGame(user *models.User) (*models.Game, error) {
 
 	game := models.Game{
 		GameId:    gameId,
-		AdminId:   *user.UserId,
+		Admin:     player,
 		CreatedAt: time.Now(),
-		PlayerIds: &[]string{*user.UserId},
+		PlayerIds: &[]models.Player{},
 	}
 
 	database.SetGame(&game)
@@ -40,7 +40,7 @@ func (gs *GameService) CreateNewGame(user *models.User) (*models.Game, error) {
 	return &game, nil
 }
 
-func (gs *GameService) JoinGame(gameId string, userId string) (*models.Game, error) {
+func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.Game, error) {
 
 	game, err := database.GetGame(gameId)
 	if err != nil {
@@ -48,7 +48,7 @@ func (gs *GameService) JoinGame(gameId string, userId string) (*models.Game, err
 		return nil, err
 	}
 
-	game, err = addPlayer(game, userId)
+	game, err = addPlayer(game, player)
 	if err != nil {
 		fmt.Println("Not able to add player")
 		return nil, err
@@ -68,7 +68,21 @@ func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
 	return database.GetGame(gameId)
 }
 
-func addPlayer(game *models.Game, userId string) (*models.Game, error) {
-	*game.PlayerIds = append(*game.PlayerIds, userId)
+func addPlayer(game *models.Game, player *models.Player) (*models.Game, error) {
+
+	if !contains(*game.PlayerIds, player) {
+		*game.PlayerIds = append(*game.PlayerIds, *player)
+	}
+
 	return game, nil
+}
+
+// Move this to util class
+func contains(playerSlice []models.Player, player *models.Player) bool {
+	for _, p := range playerSlice {
+		if p.Id == player.Id {
+			return true
+		}
+	}
+	return false
 }

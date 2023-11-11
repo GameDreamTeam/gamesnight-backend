@@ -4,7 +4,7 @@ import "time"
 
 type Game struct {
 	GameId    string    `json:"gameId"`
-	AdminId   string    `json:"adminId"`
+	Admin     *Player   `json:"admin"`
 	CreatedAt time.Time `json:"cAt"`
-	PlayerIds *[]string `json:"playerIds"`
+	PlayerIds *[]Player `json:"playerIds"`
 }

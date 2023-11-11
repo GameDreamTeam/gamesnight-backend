@@ -2,8 +2,8 @@ package models
 
 import "github.com/golang-jwt/jwt"
 
-type UserJWTClaims struct {
-	UserId string `json:"username"`
+type PlayerJWTClaims struct {
+	PlayerId string `json:"username"`
 	jwt.StandardClaims
 }
 
