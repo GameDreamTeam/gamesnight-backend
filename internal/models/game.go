@@ -6,4 +6,5 @@ type Game struct {
 	GameId    string    `json:"gameId"`
 	AdminId   string    `json:"adminId"`
 	CreatedAt time.Time `json:"cAt"`
+	PlayerIds *[]string `json:"playerIds"`
 }

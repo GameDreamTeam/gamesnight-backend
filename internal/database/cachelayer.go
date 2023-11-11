@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"gamesnight/internal/models"
 )
 
 type CacheLayer struct{}
@@ -17,10 +16,10 @@ func GetCacheLayer() *CacheLayer {
 	return cl
 }
 
-func GetUserKey(user models.User) string {
-	return fmt.Sprintf("user:%s", user.UserName)
+func GetUserKey(userId string) string {
+	return fmt.Sprintf("user:%s", userId)
 }
 
-func GetGameKey(game models.Game) string {
-	return fmt.Sprintf("game:%s", game.GameId)
+func GetGameKey(gameId string) string {
+	return fmt.Sprintf("game:%s", gameId)
 }

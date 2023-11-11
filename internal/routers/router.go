@@ -16,4 +16,6 @@ func SetupRouter(r *gin.Engine) {
 
 	r.GET("/v0/create-game", controllers.NewGameController)
 
+	r.GET("/v0/:gameId/join", controllers.JoinGameController)
+
 }

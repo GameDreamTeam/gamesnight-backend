@@ -18,7 +18,8 @@ func GetKeyGenerator() *KeyGenerator {
 }
 
 func (kg *KeyGenerator) CreateUserKey() (string, error) {
-	key, err := generateSecureKey(8)
+	const letters = "0123456789abcdefghijklmnopqrstuvwxyz"
+	key, err := generateSecureKey(8, letters)
 
 	if err != nil {
 		fmt.Printf("Error in generating key %s", err)
@@ -29,7 +30,8 @@ func (kg *KeyGenerator) CreateUserKey() (string, error) {
 }
 
 func (kg *KeyGenerator) CreateGameKey() (string, error) {
-	key, err := generateSecureKey(5)
+	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	key, err := generateSecureKey(4, letters)
 
 	if err != nil {
 		fmt.Printf("Error in generating key %s", err)
@@ -39,8 +41,7 @@ func (kg *KeyGenerator) CreateGameKey() (string, error) {
 	return key, nil
 }
 
-func generateSecureKey(length int) (string, error) {
-	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+func generateSecureKey(length int, letters string) (string, error) {
 	bytes := make([]byte, length)
 	_, err := rand.Read(bytes)
 	if err != nil {
