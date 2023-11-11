@@ -22,5 +22,5 @@ func GetUserKey(user models.User) string {
 }
 
 func GetGameKey(game models.Game) string {
-	return fmt.Sprintf("game:%s", game.Id)
+	return fmt.Sprintf("game:%s", game.GameId)
 }
