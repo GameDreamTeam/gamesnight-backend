@@ -8,3 +8,8 @@ type Game struct {
 	CreatedAt time.Time `json:"cAt"`
 	PlayerIds *[]Player `json:"playerIds"`
 }
+
+type Phrase struct {
+	Input     string    `json:"input"`
+	CreatedAt time.Time `json:"cAt"`
+}
