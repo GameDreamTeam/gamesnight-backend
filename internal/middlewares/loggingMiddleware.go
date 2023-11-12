@@ -1,10 +1,11 @@
 package middlewares
 
 import (
-	"log"
+	"gamesnight/internal/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func LoggingMiddleware() gin.HandlerFunc {
@@ -16,6 +17,12 @@ func LoggingMiddleware() gin.HandlerFunc {
 		endTime := time.Now()
 		latency := endTime.Sub(startTime)
 
-		log.Printf("Method: %s, Path: %s, Duration: %s", c.Request.Method, c.Request.URL.Path, latency)
+		logger.GetLogger().Logger.Info(
+			"Request Logger",
+			zap.String("Type", "http-request"),
+			zap.String("Method", c.Request.Method),
+			zap.String("Path", c.Request.URL.Path),
+			zap.Duration("Duration", latency),
+		)
 	}
 }

@@ -1,13 +1,8 @@
 .DEFAULT_GOAL := help
 
-# Load .env file in the application, not in the Makefile
-# include .env
-# export
-
-# Define 'run' as depending on 'format' and 'build'
 run: format build
 	@echo "Formatting, Building and Running"
-	./bin/charades
+	ENV=local ./bin/charades
 
 format:
 	@echo "Formatting"

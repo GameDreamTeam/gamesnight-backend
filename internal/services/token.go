@@ -63,6 +63,6 @@ func (ts *TokenService) ParsePlayerToken(tokenString string) (*models.Player, er
 			Id: &claims.PlayerId,
 		}, nil
 	} else {
-		return nil, fmt.Errorf("Invalid token")
+		return nil, fmt.Errorf("invalid token")
 	}
 }

@@ -1,13 +1,11 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"gamesnight/internal/database"
-	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type GameService struct{}
@@ -48,13 +46,11 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	// This entire portion has to acquire a lock when having high concurrency
 	game, err := database.GetGame(gameId)
 	if err != nil {
-		fmt.Println("Not getting game")
 		return nil, err
 	}
 
-	game, err = addPlayer(game, player)
+	game, err = addPlayerToGame(game, player)
 	if err != nil {
-		fmt.Println("Not able to add player")
 		return nil, err
 	}
 
@@ -72,17 +68,17 @@ func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
 	return database.GetGame(gameId)
 }
 
-func addPlayer(game *models.Game, player *models.Player) (*models.Game, error) {
+func addPlayerToGame(game *models.Game, player *models.Player) (*models.Game, error) {
 
-	logger.GetLogger().Logger.Info("Player add", zap.Any("game", *game), zap.Any("player", *player))
 	if !contains(*game.PlayerIds, player) {
 		*game.PlayerIds = append(*game.PlayerIds, *player)
+	} else {
+		return nil, errors.New("player already exists in this game")
 	}
 
 	return game, nil
 }
 
-// Move this to util class
 func contains(playerSlice []models.Player, player *models.Player) bool {
 	for _, p := range playerSlice {
 		if *p.Id == *player.Id {
