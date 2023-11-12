@@ -7,6 +7,7 @@ require github.com/alicebob/miniredis v2.5.0+incompatible
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 )
 
 require (
@@ -36,6 +37,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/yuin/gopher-lua v1.1.0 // indirect
+	go.uber.org/zap v1.26.0
 	golang.org/x/arch v0.6.0 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
