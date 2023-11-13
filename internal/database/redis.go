@@ -75,18 +75,42 @@ func GetGameMeta(gameId string) (*models.GameMeta, error) {
 	return &game, nil
 }
 
-func SetGamePhrases(gameId string, phrases *models.PhraseList) error {
-	key := fmt.Sprintf("game_phrases:%s", gameId) // Key pattern can be "game_phrases:<gameId>"
+func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
+	key := fmt.Sprintf("game_phrases:%s", gameId) // Key pattern remains the same
 
-	jsonPhrases, err := json.Marshal(phrases)
-	if err != nil {
-		fmt.Println("Error marshaling phrases:", err)
+	// Retrieve existing phrases
+	existingPhrasesJSON, err := rc.Client.Get(key).Result()
+	if err != nil && err != redis.Nil {
+		fmt.Println("Error getting existing phrases from Redis:", err)
 		return err
 	}
 
-	err = rc.Client.Set(key, jsonPhrases, 24*time.Hour).Err()
+	var existingPhrases models.PhraseList
+	if existingPhrasesJSON != "" {
+		err = json.Unmarshal([]byte(existingPhrasesJSON), &existingPhrases)
+		if err != nil {
+			fmt.Println("Error unmarshaling existing phrases:", err)
+			return err
+		}
+	} else {
+		// Initialize existingPhrases.List if no phrases are currently stored
+		existingPhrases.List = &[]models.Phrase{}
+	}
+
+	// Append new phrases to the existing phrases
+	*existingPhrases.List = append(*existingPhrases.List, *newPhrases.List...)
+
+	// Marshal the updated phrases list
+	updatedPhrasesJSON, err := json.Marshal(existingPhrases)
 	if err != nil {
-		fmt.Println("Error setting game phrases in Redis:", err)
+		fmt.Println("Error marshaling updated phrases:", err)
+		return err
+	}
+
+	// Save the updated list back to Redis
+	err = rc.Client.Set(key, updatedPhrasesJSON, 24*time.Hour).Err()
+	if err != nil {
+		fmt.Println("Error setting updated phrases in Redis:", err)
 		return err
 	}
 
@@ -116,9 +140,8 @@ func GetGamePhrases(gameId string) (*models.PhraseList, error) {
 	return &phrases, nil
 }
 
-func SetPlayerGamePhrases(gameId string, playerId string, phrases *models.PhraseList) error {
-	key := fmt.Sprintf("player_game_phrases:%s:%s", gameId, playerId) // Key pattern can be "player_game_phrases:<gameId>:<playerId>"
-
+func SetPlayerPhrases(playerId string, phrases *models.PhraseList) error {
+	key := fmt.Sprintf("player_phrases:%s", playerId)
 	jsonPhrases, err := json.Marshal(phrases)
 	if err != nil {
 		fmt.Println("Error marshaling phrases:", err)
@@ -130,17 +153,17 @@ func SetPlayerGamePhrases(gameId string, playerId string, phrases *models.Phrase
 		fmt.Println("Error setting player game phrases in Redis:", err)
 		return err
 	}
-
+	fmt.Println("Player Phrases set successfully")
 	return nil
 }
 
-func GetPlayerGamePhrases(gameId string, playerId string) (*models.PhraseList, error) {
-	key := fmt.Sprintf("player_game_phrases:%s:%s", gameId, playerId)
+func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
+	key := fmt.Sprintf("player_phrases:%s", playerId)
 
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
 		if err == redis.Nil {
-			fmt.Println("No phrases found for player in game", gameId, playerId)
+			fmt.Println("No phrases found for player in game", playerId)
 			return nil, nil
 		}
 		fmt.Println("Error getting player game phrases from Redis:", err)
