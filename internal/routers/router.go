@@ -13,6 +13,7 @@ func SetupRouter(r *gin.Engine) {
 	// Separate user and game routers
 	r.GET("/v0/create-game", controllers.NewGameController)
 	r.POST("/v0/:gameId/join", controllers.JoinGameController)
-	r.GET("/v0/game/:gameId", controllers.GetGameController)
-
+	r.GET("/v0/gamemeta/:gameId", controllers.GetGameMetaController)
+	// Maybe this should be a post call and not a get call
+	r.GET("/v0/game/:gameId/start", controllers.StartGameController)
 }

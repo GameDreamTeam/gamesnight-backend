@@ -2,13 +2,20 @@ package models
 
 import "time"
 
+type GameState int
+
+const (
+	PlayersJoining GameState = iota // 0
+	AddingWords                     // 1
+	Playing                         // 2
+	Finished
+)
+
 type GameMeta struct {
-	GameId        string    `json:"gameId"`
-	AdminId       string    `json:"adminId"`
-	Players       *[]Player `json:"players"`
-	State         string    `json:"state"`
-	CreatedAt     time.Time `json:"cAt"`
-	CurrentPlayer *Player   `json:"currentPlayer"`
+	GameId    string    `json:"gameId"`
+	AdminId   string    `json:"adminId"`
+	Players   *[]Player `json:"players"`
+	CreatedAt time.Time `json:"cAt"`
 }
 
 type Phrase struct {
@@ -19,4 +26,17 @@ type Phrase struct {
 type UserInput struct {
 	UserId  string    `json:"userId"`
 	Phrases *[]Phrase `json:"phrases"`
+}
+
+type Game struct {
+	GameId        string    `json:"gameId"`
+	GameState     GameState `json:"state"`
+	Teams         []Team    `json:"teams"`
+	CurrentPlayer *Player   `json:"currentPlayer"`
+}
+
+type Team struct {
+	Name    string    `json:"name"`
+	Players *[]Player `json:"players"`
+	Score   int       `json:"score"`
 }

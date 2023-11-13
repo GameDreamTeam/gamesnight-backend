@@ -44,9 +44,9 @@ func NewRedisClient() {
 	}
 }
 
-func SetGame(game *models.GameMeta) error {
+func SetGameMeta(game *models.GameMeta) error {
 
-	key := GetGameKey(game.GameId)
+	key := GetGameMetaKey(game.GameId)
 
 	jsonGame, err := json.Marshal(game)
 	if err != nil {
@@ -58,18 +58,18 @@ func SetGame(game *models.GameMeta) error {
 	return nil
 }
 
-func GetGame(gameId string) (*models.GameMeta, error) {
+func GetGameMeta(gameId string) (*models.GameMeta, error) {
 
-	key := GetGameKey(gameId)
+	key := GetGameMetaKey(gameId)
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "Getting Game failed")
+		return nil, errors.Wrap(err, "Getting Game Meta failed")
 	}
 
 	var game models.GameMeta
 	err = json.Unmarshal([]byte(result), &game)
 	if err != nil {
-		return nil, errors.Wrap(err, "Converting game json to game object failed")
+		return nil, errors.Wrap(err, "Converting game meta json to game object failed")
 	}
 
 	return &game, nil
@@ -79,8 +79,8 @@ func GetPlayerKey(playerId string) string {
 	return fmt.Sprintf("player:%s", playerId)
 }
 
-func GetGameKey(gameId string) string {
-	return fmt.Sprintf("game:%s", gameId)
+func GetGameMetaKey(gameId string) string {
+	return fmt.Sprintf("gamemeta:%s", gameId)
 }
 
 func GetUserInputKey(playerId string, gameId string) string {
