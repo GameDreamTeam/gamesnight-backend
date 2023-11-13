@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
@@ -12,17 +13,17 @@ func NewGameController(c *gin.Context) {
 
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("internal Server Error"))
 	}
 
 	// Can check if this type conversion is passing or failing
 	player := p.(*models.Player)
-	game, err := services.GetGameService().CreateNewGame(player)
+	game, err := services.GetGameService().CreateNewGame(*player.Id)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	c.JSON(http.StatusOK, game)
+	SendResponse(c, http.StatusOK, game, nil)
 }
 
 func JoinGameController(c *gin.Context) {
@@ -36,7 +37,7 @@ func JoinGameController(c *gin.Context) {
 	var playerName models.PlayerName
 
 	if err := c.BindJSON(&playerName); err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -44,10 +45,10 @@ func JoinGameController(c *gin.Context) {
 
 	game, err := services.GetGameService().JoinGame(gameId, player)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	c.JSON(http.StatusOK, game)
+	SendResponse(c, http.StatusOK, game, nil)
 }
 
 func GetGameController(c *gin.Context) {
@@ -55,8 +56,8 @@ func GetGameController(c *gin.Context) {
 	game, err := services.GetGameService().GetGame(gameId)
 
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	c.JSON(http.StatusOK, game)
+	SendResponse(c, http.StatusOK, game, nil)
 }

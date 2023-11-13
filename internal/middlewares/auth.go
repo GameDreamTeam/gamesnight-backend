@@ -5,6 +5,7 @@ import (
 	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -17,7 +18,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		p, err := getPlayerOrCreateNew(c)
 		if err != nil {
-			controllers.HandleError(c, err)
+			controllers.SendResponse(c, http.StatusInternalServerError, nil, err)
 			return
 		}
 

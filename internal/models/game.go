@@ -2,10 +2,10 @@ package models
 
 import "time"
 
-type Game struct {
+type GameMeta struct {
 	GameId        string    `json:"gameId"`
-	Admin         *Player   `json:"admin"`
-	PlayerIds     *[]Player `json:"playerIds"`
+	AdminId       string    `json:"adminId"`
+	Players       *[]Player `json:"players"`
 	State         string    `json:"state"`
 	CreatedAt     time.Time `json:"cAt"`
 	CurrentPlayer *Player   `json:"currentPlayer"`

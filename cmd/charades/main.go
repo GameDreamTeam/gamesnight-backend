@@ -27,9 +27,9 @@ func main() {
 	}))
 
 	r.Use(gin.Recovery())
-	r.Use(middlewares.LoggingMiddleware())
 	r.Use(middlewares.AuthMiddleware())
-
+	r.Use(middlewares.ErrorHandlingMiddleware())
+	r.Use(middlewares.LoggingMiddleware())
 	routers.SetupRouter(r)
 
 	r.Run(":8080")

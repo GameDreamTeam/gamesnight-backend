@@ -44,7 +44,7 @@ func NewRedisClient() {
 	}
 }
 
-func SetGame(game *models.Game) error {
+func SetGame(game *models.GameMeta) error {
 
 	key := GetGameKey(game.GameId)
 
@@ -58,7 +58,7 @@ func SetGame(game *models.Game) error {
 	return nil
 }
 
-func GetGame(gameId string) (*models.Game, error) {
+func GetGame(gameId string) (*models.GameMeta, error) {
 
 	key := GetGameKey(gameId)
 	result, err := rc.Client.Get(key).Result()
@@ -66,7 +66,7 @@ func GetGame(gameId string) (*models.Game, error) {
 		return nil, errors.Wrap(err, "Getting Game failed")
 	}
 
-	var game models.Game
+	var game models.GameMeta
 	err = json.Unmarshal([]byte(result), &game)
 	if err != nil {
 		return nil, errors.Wrap(err, "Converting game json to game object failed")

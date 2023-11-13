@@ -20,7 +20,7 @@ func GetGameService() *GameService {
 	return gs
 }
 
-func (gs *GameService) CreateNewGame(player *models.Player) (*models.Game, error) {
+func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) {
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
 	//Check if game already exists before returning this
@@ -29,11 +29,11 @@ func (gs *GameService) CreateNewGame(player *models.Player) (*models.Game, error
 		return nil, err
 	}
 
-	game := models.Game{
+	game := models.GameMeta{
 		GameId:    gameId,
-		Admin:     player,
+		AdminId:   playerId,
 		CreatedAt: time.Now(),
-		PlayerIds: &[]models.Player{},
+		Players:   &[]models.Player{},
 	}
 
 	database.SetGame(&game)
@@ -41,7 +41,7 @@ func (gs *GameService) CreateNewGame(player *models.Player) (*models.Game, error
 	return &game, nil
 }
 
-func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.Game, error) {
+func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.GameMeta, error) {
 
 	// This entire portion has to acquire a lock when having high concurrency
 	game, err := database.GetGame(gameId)
@@ -64,15 +64,16 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	return game, nil
 }
 
-func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
+func (gs *GameService) GetGame(gameId string) (*models.GameMeta, error) {
 	return database.GetGame(gameId)
 }
 
-func addPlayerToGame(game *models.Game, player *models.Player) (*models.Game, error) {
+func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
 
-	if !contains(*game.PlayerIds, player) {
-		*game.PlayerIds = append(*game.PlayerIds, *player)
+	if !contains(*game.Players, player) {
+		*game.Players = append(*game.Players, *player)
 	} else {
+		// Return custom error here (404)
 		return nil, errors.New("player already exists in this game")
 	}
 
