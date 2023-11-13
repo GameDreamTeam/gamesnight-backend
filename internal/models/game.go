@@ -5,9 +5,10 @@ import "time"
 type GameState int
 
 const (
-	PlayersJoining GameState = iota // 0
-	AddingWords                     // 1
-	Playing                         // 2
+	PlayersJoining GameState = iota
+	AddingWords
+	TeamsDivided
+	Playing
 	Finished
 )
 
@@ -29,10 +30,11 @@ type UserInput struct {
 }
 
 type Game struct {
-	GameId        string    `json:"gameId"`
-	GameState     GameState `json:"state"`
-	Teams         []Team    `json:"teams"`
-	CurrentPlayer *Player   `json:"currentPlayer"`
+	GameId    string    `json:"gameId"`
+	GameState GameState `json:"state"`
+	// Maybe this should be a map of teams and not a slice
+	Teams         *[]Team `json:"teams"`
+	CurrentPlayer *Player `json:"currentPlayer"`
 }
 
 type Team struct {

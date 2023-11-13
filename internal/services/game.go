@@ -37,12 +37,21 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 		Players:   &[]models.Player{},
 	}
 
+	game := models.Game{
+		GameId:    gameId,
+		GameState: models.PlayersJoining,
+	}
+
+	// Use go routines here
 	database.SetGameMeta(&gameMeta)
+	database.SetGame(&game)
 
 	return &gameMeta, nil
 }
 
 func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.GameMeta, error) {
+
+	// Check the state of game here
 
 	// This entire portion has to acquire a lock when having high concurrency
 	game, err := database.GetGameMeta(gameId)
@@ -69,7 +78,9 @@ func (gs *GameService) GetGameMeta(gameId string) (*models.GameMeta, error) {
 	return database.GetGameMeta(gameId)
 }
 
-func (gs *GameService) StartGame(gamemeta *models.GameMeta) (*models.Game, error) {
+func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
+	//Check if game already exists or not before making teams
+
 	// Future we have to make number of teams customizable
 	team1, team2 := dividePlayersIntoTeams(*gamemeta.Players)
 
@@ -88,11 +99,32 @@ func (gs *GameService) StartGame(gamemeta *models.GameMeta) (*models.Game, error
 
 	game := models.Game{
 		GameId:    gamemeta.GameId,
-		Teams:     teams,
+		Teams:     &teams,
 		GameState: models.Playing,
 	}
 
+	// Write this to redis
+
 	return &game, nil
+}
+
+func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
+	//Check if game is teams divided and ready to start
+
+	game, err := database.GetGame(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	game.GameState = models.Playing
+
+	err = database.SetGame(game)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+
 }
 
 func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.Player) {
