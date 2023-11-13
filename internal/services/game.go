@@ -1,13 +1,12 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"gamesnight/internal/database"
-	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
+	"math/rand"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type GameService struct{}
@@ -22,7 +21,7 @@ func GetGameService() *GameService {
 	return gs
 }
 
-func (gs *GameService) CreateNewGame(player *models.Player) (*models.Game, error) {
+func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) {
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
 	//Check if game already exists before returning this
@@ -31,34 +30,32 @@ func (gs *GameService) CreateNewGame(player *models.Player) (*models.Game, error
 		return nil, err
 	}
 
-	game := models.Game{
+	gameMeta := models.GameMeta{
 		GameId:    gameId,
-		Admin:     player,
+		AdminId:   playerId,
 		CreatedAt: time.Now(),
-		PlayerIds: &[]models.Player{},
+		Players:   &[]models.Player{},
 	}
 
-	database.SetGame(&game)
+	database.SetGameMeta(&gameMeta)
 
-	return &game, nil
+	return &gameMeta, nil
 }
 
-func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.Game, error) {
+func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.GameMeta, error) {
 
 	// This entire portion has to acquire a lock when having high concurrency
-	game, err := database.GetGame(gameId)
+	game, err := database.GetGameMeta(gameId)
 	if err != nil {
-		fmt.Println("Not getting game")
 		return nil, err
 	}
 
-	game, err = addPlayer(game, player)
+	game, err = addPlayerToGame(game, player)
 	if err != nil {
-		fmt.Println("Not able to add player")
 		return nil, err
 	}
 
-	err = database.SetGame(game)
+	err = database.SetGameMeta(game)
 
 	if err != nil {
 		fmt.Println("Not able to set game")
@@ -68,21 +65,58 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	return game, nil
 }
 
-func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
-	return database.GetGame(gameId)
+func (gs *GameService) GetGameMeta(gameId string) (*models.GameMeta, error) {
+	return database.GetGameMeta(gameId)
 }
 
-func addPlayer(game *models.Game, player *models.Player) (*models.Game, error) {
+func (gs *GameService) StartGame(gamemeta *models.GameMeta) (*models.Game, error) {
+	// Future we have to make number of teams customizable
+	team1, team2 := dividePlayersIntoTeams(*gamemeta.Players)
 
-	logger.GetLogger().Logger.Info("Player add", zap.Any("game", *game), zap.Any("player", *player))
-	if !contains(*game.PlayerIds, player) {
-		*game.PlayerIds = append(*game.PlayerIds, *player)
+	// Make these names customizable
+	t1 := models.Team{
+		Name:    "RED",
+		Players: &team1,
+	}
+
+	t2 := models.Team{
+		Name:    "BLUE",
+		Players: &team2,
+	}
+
+	teams := []models.Team{t1, t2}
+
+	game := models.Game{
+		GameId:    gamemeta.GameId,
+		Teams:     teams,
+		GameState: models.Playing,
+	}
+
+	return &game, nil
+}
+
+func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.Player) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r.Shuffle(len(players), func(i, j int) {
+		players[i], players[j] = players[j], players[i]
+	})
+
+	mid := len(players) / 2
+	return players[:mid], players[mid:]
+}
+
+func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
+
+	if !contains(*game.Players, player) {
+		*game.Players = append(*game.Players, *player)
+	} else {
+		// Return custom error here (404)
+		return nil, errors.New("player already exists in this game")
 	}
 
 	return game, nil
 }
 
-// Move this to util class
 func contains(playerSlice []models.Player, player *models.Player) bool {
 	for _, p := range playerSlice {
 		if *p.Id == *player.Id {

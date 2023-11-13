@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gamesnight/internal/config"
 	"gamesnight/internal/database"
 	"gamesnight/internal/logger"
 	"gamesnight/internal/middlewares"
@@ -11,10 +12,12 @@ import (
 )
 
 func main() {
-	database.NewRedisClient()
+	config.New()
 	logger.New()
+	database.NewRedisClient()
 
-	r := gin.Default()
+	r := gin.New()
+
 	// Move this logic to another file
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
@@ -23,9 +26,10 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	r.Use(middlewares.LoggingMiddleware())
+	r.Use(gin.Recovery())
 	r.Use(middlewares.AuthMiddleware())
-
+	r.Use(middlewares.ErrorHandlingMiddleware())
+	r.Use(middlewares.LoggingMiddleware())
 	routers.SetupRouter(r)
 
 	r.Run(":8080")

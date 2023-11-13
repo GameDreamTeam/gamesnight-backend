@@ -6,6 +6,8 @@ import (
 	"gamesnight/internal/models"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/alicebob/miniredis"
 	"github.com/go-redis/redis"
 )
@@ -16,47 +18,58 @@ type RedisClient struct {
 
 var rc *RedisClient
 
-func NewRedisClient() {
+func getLocalClient() (*redis.Client, error) {
 	mr, err := miniredis.Run()
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	rdb := redis.NewClient(&redis.Options{
 		Addr: mr.Addr(),
 	})
 
+	return rdb, nil
+}
+
+func NewRedisClient() {
+
+	rdb, err := getLocalClient()
+
+	if err != nil {
+		panic(fmt.Sprintf("Redis Initialization failed %s", err))
+	}
+
 	rc = &RedisClient{
 		Client: rdb,
 	}
 }
 
-func SetGame(game *models.Game) error {
+func SetGameMeta(game *models.GameMeta) error {
 
-	key := GetGameKey(game.GameId)
+	key := GetGameMetaKey(game.GameId)
 
 	jsonGame, err := json.Marshal(game)
 	if err != nil {
-		fmt.Println("Error marshaling game:", err)
-		return err
+		return errors.Wrap(err, "Game json conversion failed while setting game")
 	}
 
+	// Handle failures here
 	rc.Client.Set(key, jsonGame, 24*time.Hour)
 	return nil
 }
 
-func GetGame(gameId string) (*models.Game, error) {
+func GetGameMeta(gameId string) (*models.GameMeta, error) {
 
-	key := GetGameKey(gameId)
+	key := GetGameMetaKey(gameId)
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Getting Game Meta failed")
 	}
 
-	var game models.Game
+	var game models.GameMeta
 	err = json.Unmarshal([]byte(result), &game)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Converting game meta json to game object failed")
 	}
 
 	return &game, nil
@@ -142,4 +155,12 @@ func GetPlayerGamePhrases(gameId string, playerId string) (*models.PhraseList, e
 	}
 
 	return &phrases, nil
+}
+
+func GetPlayerKey(playerId string) string {
+	return fmt.Sprintf("player:%s", playerId)
+}
+
+func GetGameMetaKey(gameId string) string {
+	return fmt.Sprintf("gamemeta:%s", gameId)
 }

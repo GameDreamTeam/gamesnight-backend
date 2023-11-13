@@ -2,28 +2,32 @@ package controllers
 
 import (
 	"gamesnight/internal/database"
+	"errors"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func NewGameController(c *gin.Context) {
 
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("internal Server Error"))
+		return
 	}
 
 	// Can check if this type conversion is passing or failing
 	player := p.(*models.Player)
-	game, err := services.GetGameService().CreateNewGame(player)
+	game, err := services.GetGameService().CreateNewGame(*player.Id)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	c.JSON(http.StatusOK, game)
+	SendResponse(c, http.StatusOK, game, nil)
 }
 
 func JoinGameController(c *gin.Context) {
@@ -37,7 +41,7 @@ func JoinGameController(c *gin.Context) {
 	var playerName models.PlayerName
 
 	if err := c.BindJSON(&playerName); err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -45,21 +49,54 @@ func JoinGameController(c *gin.Context) {
 
 	game, err := services.GetGameService().JoinGame(gameId, player)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	c.JSON(http.StatusOK, game)
+	SendResponse(c, http.StatusOK, game, nil)
 }
 
-func GetGameController(c *gin.Context) {
+func GetGameMetaController(c *gin.Context) {
 	gameId := c.Param("gameId")
-	game, err := services.GetGameService().GetGame(gameId)
+	game, err := services.GetGameService().GetGameMeta(gameId)
 
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	c.JSON(http.StatusOK, game)
+	SendResponse(c, http.StatusOK, game, nil)
+}
+
+func StartGameController(c *gin.Context) {
+	gameId := c.Param("gameId")
+	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	}
+	player := p.(*models.Player)
+
+	if *player.Id != gamemeta.AdminId {
+		logger.GetLogger().Logger.Error(
+			"player starting game should be admin",
+			zap.Any("gamemeta", gamemeta),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("player starting game should be admin"))
+		return
+	}
+
+	game, err := services.GetGameService().StartGame(gamemeta)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+	}
+
+	SendResponse(c, http.StatusOK, game, nil)
 }
 
 func AddPhraseController(c *gin.Context) {
@@ -77,21 +114,21 @@ func AddPhraseController(c *gin.Context) {
 
 	// Bind the incoming JSON to phraseList
 	if err := c.BindJSON(&phraseList); err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
 	// Save the phrases in Redis with gameId as the key
 	err := database.SetGamePhrases(gameId, &phraseList)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
 	// Optionally, save the phrases with a key combining the gameId and playerId
 	err = database.SetPlayerGamePhrases(gameId, playerId, &phraseList)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -102,7 +139,7 @@ func GetGamePhrasesController(c *gin.Context) {
 	gameId := c.Param("gameId")
 	phrases, err := database.GetGamePhrases(gameId)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -115,7 +152,7 @@ func GetPlayerPhrasesController(c *gin.Context) {
 
 	phrases, err := database.GetPlayerGamePhrases(gameId, playerId)
 	if err != nil {
-		HandleError(c, err)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
