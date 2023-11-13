@@ -10,6 +10,7 @@ type Logger struct {
 	Logger *zap.Logger
 }
 
+// Logger Instance
 var l *Logger
 
 func New() {

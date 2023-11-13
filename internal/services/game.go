@@ -125,3 +125,55 @@ func contains(playerSlice []models.Player, player *models.Player) bool {
 	}
 	return false
 }
+
+func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
+	// Check if game exists
+	_, err := gs.GetGameMeta(gameId)
+	if err != nil {
+		return err
+	}
+
+	// Add phrases to the game
+	err = database.SetGamePhrases(gameId, phraseList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gs *GameService) AddPhrasesToPlayer(playerId string, phraseList *models.PhraseList) error {
+	// Add phrases to the player
+	err := database.SetPlayerPhrases(playerId, phraseList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gs *GameService) GetGamePhrases(gameId string) (*models.PhraseList, error) {
+	// Check if game exists
+	_, err := gs.GetGameMeta(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch phrases for the game
+	phrases, err := database.GetGamePhrases(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	return phrases, nil
+}
+
+func (ps *PlayerService) GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
+	// Fetch phrases for the player
+	phrases, err := database.GetPlayerPhrases(playerId)
+	if err != nil {
+		return nil, err
+	}
+
+	return phrases, nil
+}

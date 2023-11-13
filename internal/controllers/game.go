@@ -2,11 +2,9 @@ package controllers
 
 import (
 	"errors"
-	"gamesnight/internal/database"
 	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +19,6 @@ func NewGameController(c *gin.Context) {
 		return
 	}
 
-	// Can check if this type conversion is passing or failing
 	player := p.(*models.Player)
 	game, err := services.GetGameService().CreateNewGame(*player.Id)
 	if err != nil {
@@ -101,14 +98,6 @@ func StartGameController(c *gin.Context) {
 }
 
 func AddPhraseController(c *gin.Context) {
-	gameId := c.Param("gameId")
-	_, err := services.GetGameService().GetGameMeta(gameId)
-
-	if err != nil {
-		SendResponse(c, http.StatusNotFound, nil, err)
-		return
-	}
-
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -118,21 +107,25 @@ func AddPhraseController(c *gin.Context) {
 	var phraseList models.PhraseList
 	player := p.(*models.Player)
 	playerId := *player.Id
+	gameId := c.Param("gameId")
 
 	if err := c.BindJSON(&phraseList); err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)
 		return
 	}
 
-	log.Printf("AddPhraseController: Saving phrases for gameId %s", gameId)
-	err = database.SetGamePhrases(gameId, &phraseList)
+	if len(*phraseList.List) != 4 {
+		SendResponse(c, http.StatusBadRequest, nil, errors.New("total length of phrases must be 4"))
+		return
+	}
+
+	err := services.GetGameService().AddPhrasesToGame(gameId, &phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	log.Printf("AddPhraseController: Saving player phrases for playerId %s", playerId)
-	err = database.SetPlayerPhrases(playerId, &phraseList)
+	err = services.GetGameService().AddPhrasesToPlayer(playerId, &phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -143,16 +136,8 @@ func AddPhraseController(c *gin.Context) {
 
 func GetGamePhrasesController(c *gin.Context) {
 	gameId := c.Param("gameId")
-	_, err := services.GetGameService().GetGameMeta(gameId)
 
-	if err != nil {
-		SendResponse(c, http.StatusNotFound, nil, err)
-		return
-	}
-	
-	log.Printf("GetGamePhrasesController: Fetching phrases for gameId %s", gameId)
-
-	phrases, err := database.GetGamePhrases(gameId)
+	phrases, err := services.GetGameService().GetGamePhrases(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -163,9 +148,8 @@ func GetGamePhrasesController(c *gin.Context) {
 
 func GetPlayerPhrasesController(c *gin.Context) {
 	playerId := c.Param("playerId")
-	log.Printf("GetPlayerPhrasesController: Fetching phrases for playerId %s", playerId)
 
-	phrases, err := database.GetPlayerPhrases(playerId)
+	phrases, err := services.GetPlayerService().GetPlayerPhrases(playerId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
