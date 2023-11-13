@@ -15,5 +15,8 @@ func SetupRouter(r *gin.Engine) {
 	r.POST("/v0/:gameId/join", controllers.JoinGameController)
 	r.GET("/v0/game/:gameId", controllers.GetGameController)
 	r.GET("/v0/user/:userId", controllers.GetPlayerController)
+	r.POST("/v0/game/:gameId/submit", controllers.AddPhraseController)
+	r.GET("/v0/game/:gameId/phrases", controllers.GetGamePhrasesController)
+	r.GET("/v0/player/:playerId/phrases", controllers.GetPlayerPhrasesController)
 
 }
