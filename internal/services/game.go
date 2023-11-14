@@ -137,6 +137,13 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 		return nil, err
 	}
 
+	currentTeamIndex := game.CurrentTeamIndex
+	nextTeamIndex := getNextTeamIndex(game.CurrentTeamIndex)
+	currentTeamCurrentPlayerIndex := (*game.Teams)[currentTeamIndex].CurrentPlayerIndex
+	nextTeamCurrentPlayerIndex := (*game.Teams)[nextTeamIndex].CurrentPlayerIndex
+
+	game.CurrentPlayer = &(*(*game.Teams)[currentTeamIndex].Players)[currentTeamCurrentPlayerIndex]
+	game.NextPlayer = &(*(*game.Teams)[nextTeamIndex].Players)[nextTeamCurrentPlayerIndex]
 	return game, nil
 
 }
@@ -148,7 +155,7 @@ func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.
 	})
 
 	mid := len(players) / 2
-	return players[:mid], players[mid:]
+	return players[:mid+1], players[mid+1:]
 }
 
 func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
@@ -170,4 +177,11 @@ func contains(playerSlice []models.Player, player *models.Player) bool {
 		}
 	}
 	return false
+}
+
+func getNextTeamIndex(currentIndex int) int {
+	if currentIndex == 1 {
+		return 0
+	}
+	return 1
 }

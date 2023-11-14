@@ -39,6 +39,7 @@ type Game struct {
 	CurrentTeamIndex int       `json:"currentTeamIndex"`
 }
 
+// Ideally index should not be stored here. Bad coupling
 type Team struct {
 	Name               string    `json:"name"`
 	Players            *[]Player `json:"players"`
