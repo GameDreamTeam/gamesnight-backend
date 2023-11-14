@@ -14,6 +14,7 @@ func SetupRouter(r *gin.Engine) {
 	r.GET("/v0/create-game", controllers.NewGameController)
 	r.POST("/v0/:gameId/join", controllers.JoinGameController)
 	r.GET("/v0/gamemeta/:gameId", controllers.GetGameMetaController)
+	r.GET("/v0/game/:gameId", controllers.GetGameController)
 
 	// Maybe this should be a post call and not a get call
 	// Maybe using hyphens is not good practice

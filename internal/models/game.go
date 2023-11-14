@@ -29,16 +29,19 @@ type UserInput struct {
 	Phrases *[]Phrase `json:"phrases"`
 }
 
+// Maybe teams should be a map of teams and not a slice
 type Game struct {
-	GameId    string    `json:"gameId"`
-	GameState GameState `json:"state"`
-	// Maybe this should be a map of teams and not a slice
-	Teams         *[]Team `json:"teams"`
-	CurrentPlayer *Player `json:"currentPlayer"`
+	GameId           string    `json:"gameId"`
+	GameState        GameState `json:"state"`
+	Teams            *[]Team   `json:"teams"`
+	CurrentPlayer    *Player   `json:"currentPlayer"`
+	NextPlayer       *Player   `json:"nextPlayer"`
+	CurrentTeamIndex int       `json:"currentTeamIndex"`
 }
 
 type Team struct {
-	Name    string    `json:"name"`
-	Players *[]Player `json:"players"`
-	Score   int       `json:"score"`
+	Name               string    `json:"name"`
+	Players            *[]Player `json:"players"`
+	Score              int       `json:"score"`
+	CurrentPlayerIndex int       `json:"currentPlayerIndex"`
 }

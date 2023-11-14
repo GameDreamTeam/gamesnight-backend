@@ -54,58 +54,72 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	// Check the state of game here
 
 	// This entire portion has to acquire a lock when having high concurrency
-	game, err := database.GetGameMeta(gameId)
+	gameMeta, err := database.GetGameMeta(gameId)
 	if err != nil {
 		return nil, err
 	}
 
-	game, err = addPlayerToGame(game, player)
+	gameMeta, err = addPlayerToGame(gameMeta, player)
 	if err != nil {
 		return nil, err
 	}
 
-	err = database.SetGameMeta(game)
+	err = database.SetGameMeta(gameMeta)
 
 	if err != nil {
 		fmt.Println("Not able to set game")
 		return nil, err
 	}
 
-	return game, nil
+	return gameMeta, nil
 }
 
 func (gs *GameService) GetGameMeta(gameId string) (*models.GameMeta, error) {
 	return database.GetGameMeta(gameId)
 }
 
+func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
+	return database.GetGame(gameId)
+}
+
 func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
 	//Check if game already exists or not before making teams
+
+	// Need to acquire a lock before setting this team
+	game, err := database.GetGame(gamemeta.GameId)
+	if err != nil {
+		return nil, err
+	}
 
 	// Future we have to make number of teams customizable
 	team1, team2 := dividePlayersIntoTeams(*gamemeta.Players)
 
 	// Make these names customizable
 	t1 := models.Team{
-		Name:    "RED",
-		Players: &team1,
+		Name:               "RED",
+		Players:            &team1,
+		Score:              0,
+		CurrentPlayerIndex: 0,
 	}
 
 	t2 := models.Team{
-		Name:    "BLUE",
-		Players: &team2,
+		Name:               "BLUE",
+		Players:            &team2,
+		Score:              0,
+		CurrentPlayerIndex: 0,
 	}
 
 	teams := []models.Team{t1, t2}
-
-	game := models.Game{
-		GameId:    gamemeta.GameId,
-		Teams:     &teams,
-		GameState: models.Playing,
-	}
+	game.Teams = &teams
+	game.GameState = models.TeamsDivided
 
 	// Write this to redis
+	err = database.SetGame(game)
+	if err != nil {
+		return nil, err
+	}
 
-	return &game, nil
+	return game, nil
 }
 
 func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
