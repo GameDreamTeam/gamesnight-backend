@@ -19,9 +19,17 @@ type GameMeta struct {
 	CreatedAt time.Time `json:"cAt"`
 }
 
+type GameWords struct {
+	GameId     string `json:"gameId"`
+	PhraseList *PhraseList
+}
+
 type Phrase struct {
-	Input     string    `json:"input"`
-	CreatedAt time.Time `json:"cAt"`
+	Input string `json:"input"`
+}
+
+type PhraseList struct {
+	List *[]Phrase `json:"phraseList"`
 }
 
 type UserInput struct {

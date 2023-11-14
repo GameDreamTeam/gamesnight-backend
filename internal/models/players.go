@@ -8,3 +8,8 @@ type Player struct {
 type PlayerName struct {
 	Username string `json:"username"`
 }
+
+type PlayerWords struct {
+	Id         *string `json:"id"`
+	PhraseList *PhraseList
+}
