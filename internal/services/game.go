@@ -155,7 +155,7 @@ func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.
 	})
 
 	mid := len(players) / 2
-	return players[:mid+1], players[mid+1:]
+	return players[:mid], players[mid:]
 }
 
 func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
