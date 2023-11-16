@@ -24,5 +24,7 @@ func SetupRouter(r *gin.Engine) {
 	// Maybe using hyphens is not good practice
 	r.GET("/v0/game/:gameId/divide-teams", controllers.MakeTeamsController)
 	r.GET("/v0/game/:gameId/start", controllers.StartGameController)
+	r.POST("/v0/game/:gameId/start-turn", controllers.StartTurnController)
+	r.POST("/v0/game/:gameId/end-turn", controllers.StartGameController)
 
 }

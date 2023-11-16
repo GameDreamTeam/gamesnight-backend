@@ -82,6 +82,10 @@ func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
 	return database.GetGame(gameId)
 }
 
+// func (gs *GameService) StartTurn(player *models.Player) (*models.Game, error) {
+
+// }
+
 func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
 	//Check if game already exists or not before making teams
 
