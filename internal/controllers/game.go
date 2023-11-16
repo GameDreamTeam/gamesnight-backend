@@ -145,6 +145,41 @@ func StartGameController(c *gin.Context) {
 	SendResponse(c, http.StatusOK, game, nil)
 }
 
+func StartTurnController(c *gin.Context) {
+
+	gameId := c.Param("gameId")
+	game, err := services.GetGameService().GetGame(gameId)
+	// Throw different error if game is not playing
+	if err != nil || game.GameState != models.Playing {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+	}
+
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	}
+	player := p.(*models.Player)
+
+	if *player.Id != *game.CurrentPlayer.Id {
+		logger.GetLogger().Logger.Error(
+			"player starting turn should be current player",
+			zap.Any("game", game),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("player starting turn should be current player"))
+		return
+	}
+
+	
+
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+	}
+
+	SendResponse(c, http.StatusOK, game, nil)
+}
+
 func AddPhraseController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
