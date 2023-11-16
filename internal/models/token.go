@@ -3,7 +3,7 @@ package models
 import "github.com/golang-jwt/jwt"
 
 type PlayerJWTClaims struct {
-	PlayerId string `json:"username"`
+	PlayerId string `json:"playerId"`
 	jwt.StandardClaims
 }
 
