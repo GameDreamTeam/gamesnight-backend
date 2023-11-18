@@ -24,7 +24,7 @@ type Phrase struct {
 }
 
 type PhraseList struct {
-	List       *[]Phrase `json:"phraseList"`
+	List *[]Phrase `json:"phraseList"`
 }
 
 type UserInput struct {
