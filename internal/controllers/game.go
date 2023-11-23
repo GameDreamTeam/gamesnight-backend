@@ -171,6 +171,8 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
+	
+
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 	}
