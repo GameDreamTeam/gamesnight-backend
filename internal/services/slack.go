@@ -22,9 +22,16 @@ func GetSlackService() *SlackService {
 	return ss
 }
 
-// SendToSlack sends a message to Slack
+// SendMessage formats the message for Slack
+func (ss *SlackService) SendMessage(message string) string {
+	return fmt.Sprintf(`{"text": "%s"}`, message)
+}
+
+// SendToSlack sends a formatted message to Slack
 func (ss *SlackService) SendToSlack(webhookURL, message string) error {
-	resp, err := http.Post(webhookURL, "application/json", strings.NewReader(fmt.Sprintf(`{"text": "%s"}`, message)))
+	formattedMessage := ss.SendMessage(message)
+
+	resp, err := http.Post(webhookURL, "application/json", strings.NewReader(formattedMessage))
 	if err != nil {
 		return err
 	}
