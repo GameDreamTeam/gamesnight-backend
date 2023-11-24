@@ -27,4 +27,5 @@ func SetupRouter(r *gin.Engine) {
 	r.POST("/v0/game/:gameId/start-turn", controllers.StartTurnController)
 	r.POST("/v0/game/:gameId/end-turn", controllers.StartGameController)
 
+	r.POST("/v0/feedback", controllers.SubmitFeedbackController)
 }
