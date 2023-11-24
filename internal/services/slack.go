@@ -10,8 +10,20 @@ import (
 	"go.uber.org/zap"
 )
 
+type SlackService struct{}
+
+var ss *SlackService
+
+func NewSlackService() {
+	ss = &SlackService{}
+}
+
+func GetSlackService() *SlackService {
+	return ss
+}
+
 // SendToSlack sends a message to Slack
-func SendToSlack(webhookURL, message string) error {
+func (ss *SlackService) SendToSlack(webhookURL, message string) error {
 	resp, err := http.Post(webhookURL, "application/json", strings.NewReader(fmt.Sprintf(`{"text": "%s"}`, message)))
 	if err != nil {
 		return err
@@ -21,6 +33,7 @@ func SendToSlack(webhookURL, message string) error {
 	// Log the response using Zap
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.GetLogger().Logger.Error("Error reading Slack API response body", zap.Error(err))
 		return err
 	}
 
