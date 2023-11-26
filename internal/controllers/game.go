@@ -239,35 +239,31 @@ func GetPlayerPhrasesController(c *gin.Context) {
 	c.JSON(http.StatusOK, phrases)
 }
 
+// Controller function
 func RemovePlayerController(c *gin.Context) {
-	// Get admin ID from the context
-	adminID, exists := c.Get("adminID")
-	if !exists {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("Internal Server Error"))
+	// Get player ID to be removed from the request
+	playerId := c.Param("playerId")
+
+	// Fetch the game meta using game ID
+	gameId := c.Param("gameId")
+	gameMeta, err := services.GetGameService().GetGameMeta(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	// Get player ID to be removed from the request
-	playerID := c.Param("playerID")
+	adminId := gameMeta.AdminId
 
-	// Check if the submitted user ID is different from admin ID
-	if adminID != playerID {
-		// Fetch the game meta
-		gameID := c.Param("gameID")
-		gameMeta, err := services.GetGameService().GetGameMeta(gameID)
-		if err != nil {
-			SendResponse(c, http.StatusInternalServerError, nil, err)
-			return
-		}
-
-		// Validate that the admin is making the request
-		if adminID != gameMeta.AdminId {
+	// Validate that the admin is making the request
+	if adminId != playerId {
+		// Validate that the admin is making the request, looks unnecessary
+		if adminId != gameMeta.AdminId {
 			SendResponse(c, http.StatusUnauthorized, nil, errors.New("Unauthorized: Only admin can remove players"))
 			return
 		}
 
 		// Remove the player from the game meta and write to redis
-		updatedGameMeta, err := services.GetGameService().RemovePlayer(gameMeta, playerID)
+		updatedGameMeta, err := services.GetGameService().RemovePlayer(gameMeta, playerId)
 		if err != nil {
 			SendResponse(c, http.StatusInternalServerError, nil, err)
 			return
