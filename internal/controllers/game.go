@@ -238,3 +238,43 @@ func GetPlayerPhrasesController(c *gin.Context) {
 
 	c.JSON(http.StatusOK, phrases)
 }
+
+func RemovePlayerController(c *gin.Context) {
+	// Get admin ID from the context
+	adminID, exists := c.Get("adminID")
+	if !exists {
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("Internal Server Error"))
+		return
+	}
+
+	// Get player ID to be removed from the request
+	playerID := c.Param("playerID")
+
+	// Check if the submitted user ID is different from admin ID
+	if adminID != playerID {
+		// Fetch the game meta
+		gameID := c.Param("gameID")
+		gameMeta, err := services.GetGameService().GetGameMeta(gameID)
+		if err != nil {
+			SendResponse(c, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		// Validate that the admin is making the request
+		if adminID != gameMeta.AdminId {
+			SendResponse(c, http.StatusUnauthorized, nil, errors.New("Unauthorized: Only admin can remove players"))
+			return
+		}
+
+		// Remove the player from the game meta and write to redis
+		updatedGameMeta, err := services.GetGameService().RemovePlayer(gameMeta, playerID)
+		if err != nil {
+			SendResponse(c, http.StatusInternalServerError, nil, err)
+			return
+		}
+
+		SendResponse(c, http.StatusOK, updatedGameMeta, nil)
+	} else {
+		SendResponse(c, http.StatusBadRequest, nil, errors.New("Bad Request: Admin cannot remove itself"))
+	}
+}

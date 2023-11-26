@@ -241,3 +241,34 @@ func (ps *PlayerService) GetPlayerPhrases(playerId string) (*models.PhraseList, 
 
 	return phrases, nil
 }
+
+func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) (*models.GameMeta, error) {
+	// Find the index of the player in the Players slice
+	playerIndex := -1
+	for i, player := range *gameMeta.Players {
+		if *player.Id == playerID {
+			playerIndex = i
+			break
+		}
+	}
+
+	// If the player is not found, return an error
+	if playerIndex == -1 {
+		return nil, errors.New("Player not found in the game")
+	}
+
+	// Create a new slice excluding the player to be removed
+	updatedPlayers := make([]models.Player, len(*gameMeta.Players)-1)
+	copy(updatedPlayers[:playerIndex], (*gameMeta.Players)[:playerIndex])
+	copy(updatedPlayers[playerIndex:], (*gameMeta.Players)[playerIndex+1:])
+
+	// Update the gameMeta with the new slice
+	gameMeta.Players = &updatedPlayers
+
+	err := database.SetGameMeta(gameMeta)
+	if err != nil {
+		return nil, err
+	}
+
+	return gameMeta, nil
+}
