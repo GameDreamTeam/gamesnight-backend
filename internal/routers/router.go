@@ -27,7 +27,7 @@ func SetupRouter(r *gin.Engine) {
 		}
 
 		// Player routes
-		player := api.Group("/players")
+		player := api.Group("/player")
 		{
 			player.GET("/:playerId/phrases", controllers.GetPlayerPhrasesController)
 		}

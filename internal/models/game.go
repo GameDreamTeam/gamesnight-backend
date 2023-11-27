@@ -17,7 +17,6 @@ type GameMeta struct {
 	AdminId   string    `json:"adminId"`
 	Players   *[]Player `json:"players"`
 	CreatedAt time.Time `json:"cAt"`
-	//Can add updated time
 }
 
 type Phrase struct {

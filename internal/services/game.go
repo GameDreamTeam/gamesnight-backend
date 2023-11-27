@@ -24,10 +24,22 @@ func GetGameService() *GameService {
 func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) {
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
-	//Check if game already exists before returning this
 	if err != nil {
 		fmt.Printf("Error in creating new game %s", err)
 		return nil, err
+	}
+
+	existingGame, _ := database.GetGame(gameId)
+	// if err != nil {
+	// 	fmt.Printf("Error checking for existing game: %s", err)
+	// 	return nil, err
+	// }
+
+	if existingGame != nil {
+		fmt.Printf("Game with gameId %s already exists", gameId)
+		// Handle this scenario, possibly by generating a new gameId or returning an error
+		//Add a maximum recursion depth
+		return gs.CreateNewGame(playerId)
 	}
 
 	gameMeta := models.GameMeta{

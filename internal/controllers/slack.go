@@ -26,7 +26,7 @@ func SubmitFeedbackController(c *gin.Context) {
 	// Call the method on the SlackService instance
 	err := slackService.SendToSlack(webhookURL, message.Text)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("Failed to send message to Slack"))
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("failed to send message to Slack"))
 		return
 	}
 
