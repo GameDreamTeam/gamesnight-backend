@@ -100,6 +100,7 @@ func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
 
 func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
 	//Check if game already exists or not before making teams
+	
 
 	// Need to acquire a lock before setting this team
 	game, err := database.GetGame(gamemeta.GameId)
@@ -153,6 +154,7 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 		return nil, err
 	}
 
+	//Minimum 2 players need to present otherwise it will throw out of bounds in array
 	currentTeamIndex := game.CurrentTeamIndex
 	nextTeamIndex := getNextTeamIndex(game.CurrentTeamIndex)
 	currentTeamCurrentPlayerIndex := (*game.Teams)[currentTeamIndex].CurrentPlayerIndex
