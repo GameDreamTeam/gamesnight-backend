@@ -254,13 +254,25 @@ func RemovePlayerController(c *gin.Context) {
 
 	adminId := gameMeta.AdminId
 
-	// Validate that the admin is making the request
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	}
+	player := p.(*models.Player)
+
+	if *player.Id != gameMeta.AdminId {
+		logger.GetLogger().Logger.Error(
+			"Only admin should remove players",
+			zap.Any("gamemeta", gameMeta),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("Only admin should remove players"))
+		return
+	}
+
+	// Validate that the player to be removed is not admin
 	if adminId != playerId {
-		// Validate that the admin is making the request, looks unnecessary
-		if adminId != gameMeta.AdminId {
-			SendResponse(c, http.StatusUnauthorized, nil, errors.New("Unauthorized: Only admin can remove players"))
-			return
-		}
 
 		// Remove the player from the game meta and write to redis
 		updatedGameMeta, err := services.GetGameService().RemovePlayer(gameMeta, playerId)
