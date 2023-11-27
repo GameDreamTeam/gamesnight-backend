@@ -205,7 +205,12 @@ func getNextTeamIndex(currentIndex int) int {
 
 func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
 	// Check if game exists
-	_, err := gs.GetGameMeta(gameId)
+	game, err := gs.GetGame(gameId)
+	if err != nil {
+		return err
+	}
+	game.GameState = models.AddingWords
+	err = database.SetGame(game)
 	if err != nil {
 		return err
 	}

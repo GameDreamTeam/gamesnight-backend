@@ -40,7 +40,7 @@ func JoinGameController(c *gin.Context) {
 
 	gameId := c.Param("gameId")
 
-	//Instead of models.PlayerName, we can use player.Name
+	// Instead of models.PlayerName, we can use player.Name
 	var playerName models.PlayerName
 
 	if err := c.BindJSON(&playerName); err != nil {
