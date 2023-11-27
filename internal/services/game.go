@@ -153,6 +153,7 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 }
 
 func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.Player) {
+	// if team exits in
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	r.Shuffle(len(players), func(i, j int) {
 		players[i], players[j] = players[j], players[i]

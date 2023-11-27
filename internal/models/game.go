@@ -17,6 +17,7 @@ type GameMeta struct {
 	AdminId   string    `json:"adminId"`
 	Players   *[]Player `json:"players"`
 	CreatedAt time.Time `json:"cAt"`
+	//Can add updated time
 }
 
 type Phrase struct {
@@ -27,6 +28,7 @@ type PhraseList struct {
 	List *[]Phrase `json:"phraseList"`
 }
 
+// Not in  use -> can be used in addPhrase
 type UserInput struct {
 	UserId  string    `json:"userId"`
 	Phrases *[]Phrase `json:"phrases"`

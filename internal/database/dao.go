@@ -28,7 +28,7 @@ func GetGame(gameId string) (*models.Game, error) {
 	key := GetGameKey(gameId)
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "Getting Game Meta failed")
+		return nil, errors.Wrap(err, "Getting Game failed")
 	}
 
 	var game models.Game
@@ -180,8 +180,8 @@ func GetPlayerKey(playerId string) string {
 	return fmt.Sprintf("player:%s", playerId)
 }
 
-func GetGameKey(playerId string) string {
-	return fmt.Sprintf("game:%s", playerId)
+func GetGameKey(gameId string) string {
+	return fmt.Sprintf("game:%s", gameId)
 }
 
 func GetGameMetaKey(gameId string) string {
