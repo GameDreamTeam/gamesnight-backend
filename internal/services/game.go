@@ -258,9 +258,7 @@ func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) 
 	}
 
 	// Create a new slice excluding the player to be removed
-	updatedPlayers := make([]models.Player, len(*gameMeta.Players)-1)
-	copy(updatedPlayers[:playerIndex], (*gameMeta.Players)[:playerIndex])
-	copy(updatedPlayers[playerIndex:], (*gameMeta.Players)[playerIndex+1:])
+	updatedPlayers := append((*gameMeta.Players)[:playerIndex], (*gameMeta.Players)[playerIndex+1:]...)
 
 	// Update the gameMeta with the new slice
 	gameMeta.Players = &updatedPlayers
