@@ -53,7 +53,7 @@ func SetGameMeta(gameMeta *models.GameMeta) error {
 
 	err = rc.Client.Set(key, jsonGame, 24*time.Hour).Err()
 	if err != nil {
-		return errors.Wrap(err, "Failed to set game meta in Redis")
+		return errors.Wrap(err, "Failed to set game in Redis")
 	}
 	return nil
 }
