@@ -100,7 +100,6 @@ func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
 
 func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
 	//Check if game already exists or not before making teams
-	
 
 	// Need to acquire a lock before setting this team
 	game, err := database.GetGame(gamemeta.GameId)
@@ -211,12 +210,14 @@ func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.Phrase
 	if err != nil {
 		return err
 	}
-	game.GameState = models.AddingWords
-	err = database.SetGame(game)
-	if err != nil {
-		return err
-	}
 
+	if game.GameState != models.AddingWords {
+		game.GameState = models.AddingWords
+		err = database.SetGame(game)
+		if err != nil {
+			return err
+		}
+	}
 	// Add phrases to the game
 	err = database.SetGamePhrases(gameId, phraseList)
 	if err != nil {

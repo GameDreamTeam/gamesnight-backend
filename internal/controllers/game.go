@@ -189,5 +189,3 @@ func StartTurnController(c *gin.Context) {
 
 	SendResponse(c, http.StatusOK, game, nil)
 }
-
-
