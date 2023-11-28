@@ -24,10 +24,22 @@ func GetGameService() *GameService {
 func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) {
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
-	//Check if game already exists before returning this
 	if err != nil {
 		fmt.Printf("Error in creating new game %s", err)
 		return nil, err
+	}
+
+	existingGame, _ := database.GetGame(gameId)
+	// if err != nil {
+	// 	fmt.Printf("Error checking for existing game: %s", err)
+	// 	return nil, err
+	// }
+
+	if existingGame != nil {
+		fmt.Printf("Game with gameId %s already exists", gameId)
+		// Handle this scenario, possibly by generating a new gameId or returning an error
+		//Add a maximum recursion depth
+		return gs.CreateNewGame(playerId)
 	}
 
 	gameMeta := models.GameMeta{
@@ -141,6 +153,7 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 		return nil, err
 	}
 
+	//Minimum 2 players need to present otherwise it will throw out of bounds in array
 	currentTeamIndex := game.CurrentTeamIndex
 	nextTeamIndex := getNextTeamIndex(game.CurrentTeamIndex)
 	currentTeamCurrentPlayerIndex := (*game.Teams)[currentTeamIndex].CurrentPlayerIndex
@@ -153,6 +166,7 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 }
 
 func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.Player) {
+	// if team exits in
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	r.Shuffle(len(players), func(i, j int) {
 		players[i], players[j] = players[j], players[i]
@@ -192,11 +206,18 @@ func getNextTeamIndex(currentIndex int) int {
 
 func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
 	// Check if game exists
-	_, err := gs.GetGameMeta(gameId)
+	game, err := gs.GetGame(gameId)
 	if err != nil {
 		return err
 	}
 
+	if game.GameState != models.AddingWords {
+		game.GameState = models.AddingWords
+		err = database.SetGame(game)
+		if err != nil {
+			return err
+		}
+	}
 	// Add phrases to the game
 	err = database.SetGamePhrases(gameId, phraseList)
 	if err != nil {

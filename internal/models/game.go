@@ -27,6 +27,7 @@ type PhraseList struct {
 	List *[]Phrase `json:"phraseList"`
 }
 
+// Not in  use -> can be used in addPhrase
 type UserInput struct {
 	UserId  string    `json:"userId"`
 	Phrases *[]Phrase `json:"phrases"`

@@ -19,7 +19,9 @@ func NewGameController(c *gin.Context) {
 		return
 	}
 
+	//(*models.Player) is the type to which you are asserting that p should be converted.
 	player := p.(*models.Player)
+
 	game, err := services.GetGameService().CreateNewGame(*player.Id)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
@@ -32,10 +34,13 @@ func JoinGameController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
 	}
 	player := p.(*models.Player)
 
 	gameId := c.Param("gameId")
+
+	// Instead of models.PlayerName, we can use player.Name
 	var playerName models.PlayerName
 
 	if err := c.BindJSON(&playerName); err != nil {
@@ -88,6 +93,7 @@ func MakeTeamsController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
 	}
 	player := p.(*models.Player)
 
@@ -105,6 +111,7 @@ func MakeTeamsController(c *gin.Context) {
 	game, err := services.GetGameService().MakeTeams(gamemeta)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
 	}
 
 	SendResponse(c, http.StatusOK, game, nil)
@@ -123,6 +130,7 @@ func StartGameController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
 	}
 	player := p.(*models.Player)
 
@@ -140,6 +148,7 @@ func StartGameController(c *gin.Context) {
 	game, err := services.GetGameService().StartGame(gamemeta.GameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
 	}
 
 	SendResponse(c, http.StatusOK, game, nil)
@@ -152,11 +161,13 @@ func StartTurnController(c *gin.Context) {
 	// Throw different error if game is not playing
 	if err != nil || game.GameState != models.Playing {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
 	}
 
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
 	}
 	player := p.(*models.Player)
 
@@ -173,70 +184,10 @@ func StartTurnController(c *gin.Context) {
 
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
 	}
 
 	SendResponse(c, http.StatusOK, game, nil)
-}
-
-func AddPhraseController(c *gin.Context) {
-	p, exists := c.Get("player")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
-
-	var phraseList models.PhraseList
-	player := p.(*models.Player)
-	playerId := *player.Id
-	gameId := c.Param("gameId")
-
-	if err := c.BindJSON(&phraseList); err != nil {
-		SendResponse(c, http.StatusBadRequest, nil, err)
-		return
-	}
-
-	if len(*phraseList.List) != 4 {
-		SendResponse(c, http.StatusBadRequest, nil, errors.New("total length of phrases must be 4"))
-		return
-	}
-
-	err := services.GetGameService().AddPhrasesToGame(gameId, &phraseList)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	err = services.GetGameService().AddPhrasesToPlayer(playerId, &phraseList)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"success": "Phrases added successfully"})
-}
-
-func GetGamePhrasesController(c *gin.Context) {
-	gameId := c.Param("gameId")
-
-	phrases, err := services.GetGameService().GetGamePhrases(gameId)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, phrases)
-}
-
-func GetPlayerPhrasesController(c *gin.Context) {
-	playerId := c.Param("playerId")
-
-	phrases, err := services.GetPlayerService().GetPlayerPhrases(playerId)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, phrases)
 }
 
 // Controller function
@@ -267,7 +218,7 @@ func RemovePlayerController(c *gin.Context) {
 			zap.Any("player", player),
 		)
 		SendResponse(c, http.StatusInternalServerError, nil,
-			errors.New("Only admin should remove players"))
+			errors.New("only admin should remove players"))
 		return
 	}
 
@@ -283,6 +234,6 @@ func RemovePlayerController(c *gin.Context) {
 
 		SendResponse(c, http.StatusOK, updatedGameMeta, nil)
 	} else {
-		SendResponse(c, http.StatusBadRequest, nil, errors.New("Bad Request: Admin cannot remove itself"))
+		SendResponse(c, http.StatusBadRequest, nil, errors.New("bad Request: Admin cannot remove itself"))
 	}
 }

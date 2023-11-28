@@ -18,8 +18,10 @@ func SetGame(game *models.Game) error {
 		return errors.Wrap(err, "Game json conversion failed while setting game")
 	}
 
-	// Handle failures here
-	rc.Client.Set(key, jsonGame, 24*time.Hour)
+	err = rc.Client.Set(key, jsonGame, 24*time.Hour).Err()
+	if err != nil {
+		return errors.Wrap(err, "Failed to set game meta in Redis")
+	}
 	return nil
 }
 
@@ -28,7 +30,7 @@ func GetGame(gameId string) (*models.Game, error) {
 	key := GetGameKey(gameId)
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "Getting Game Meta failed")
+		return nil, errors.Wrap(err, "Getting Game failed")
 	}
 
 	var game models.Game
@@ -74,7 +76,7 @@ func GetGameMeta(gameId string) (*models.GameMeta, error) {
 }
 
 func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
-	key := fmt.Sprintf("game_phrases:%s", gameId) // Key pattern remains the same
+	key := GetGamePhraseKey(gameId)
 
 	// Retrieve existing phrases
 	existingPhrasesJSON, err := rc.Client.Get(key).Result()
@@ -91,11 +93,9 @@ func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
 			return err
 		}
 	} else {
-		// Initialize existingPhrases.List if no phrases are currently stored
 		existingPhrases.List = &[]models.Phrase{}
 	}
 
-	// Append new phrases to the existing phrases
 	*existingPhrases.List = append(*existingPhrases.List, *newPhrases.List...)
 
 	// Marshal the updated phrases list
@@ -116,7 +116,7 @@ func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
 }
 
 func GetGamePhrases(gameId string) (*models.PhraseList, error) {
-	key := fmt.Sprintf("game_phrases:%s", gameId)
+	key := GetGamePhraseKey(gameId)
 
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
@@ -139,7 +139,7 @@ func GetGamePhrases(gameId string) (*models.PhraseList, error) {
 }
 
 func SetPlayerPhrases(playerId string, phrases *models.PhraseList) error {
-	key := fmt.Sprintf("player_phrases:%s", playerId)
+	key := GetPlayerPhraseKey(playerId)
 	jsonPhrases, err := json.Marshal(phrases)
 	if err != nil {
 		fmt.Println("Error marshaling phrases:", err)
@@ -156,7 +156,7 @@ func SetPlayerPhrases(playerId string, phrases *models.PhraseList) error {
 }
 
 func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
-	key := fmt.Sprintf("player_phrases:%s", playerId)
+	key := GetPlayerPhraseKey(playerId)
 
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
@@ -178,19 +178,18 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 	return &phrases, nil
 }
 
-func GetPlayerKey(playerId string) string {
-	return fmt.Sprintf("player:%s", playerId)
-}
-
-func GetGameKey(playerId string) string {
-	return fmt.Sprintf("game:%s", playerId)
+func GetGameKey(gameId string) string {
+	return fmt.Sprintf("game:%s", gameId)
 }
 
 func GetGameMetaKey(gameId string) string {
 	return fmt.Sprintf("gamemeta:%s", gameId)
 }
 
-func GetUserInputKey(playerId string, gameId string) string {
-	// Ideally we should use a different db like MySQL for storing words
-	return fmt.Sprintf("phrases:%s:%s", gameId, playerId)
+func GetGamePhraseKey(gameId string) string {
+	return fmt.Sprintf("game-phrase:%s", gameId)
+}
+
+func GetPlayerPhraseKey(playerId string) string {
+	return fmt.Sprintf("player-phrase:%s", playerId)
 }
