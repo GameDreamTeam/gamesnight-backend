@@ -77,9 +77,14 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	}
 
 	err = database.SetGameMeta(gameMeta)
-
 	if err != nil {
 		fmt.Println("Not able to set game")
+		return nil, err
+	}
+
+	err = database.SetPlayerDetails(*player)
+	if err != nil {
+		fmt.Println("Not able to set player")
 		return nil, err
 	}
 
@@ -275,7 +280,7 @@ func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) 
 
 	// If the player is not found, return an error
 	if playerIndex == -1 {
-		return nil, errors.New("Player not found in the game")
+		return nil, errors.New("player not found in the game")
 	}
 
 	// Create a new slice excluding the player to be removed

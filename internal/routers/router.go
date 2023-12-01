@@ -31,6 +31,7 @@ func SetupRouter(r *gin.Engine) {
 		player := api.Group("/player")
 		{
 			player.GET("/:playerId/phrases", controllers.GetPlayerPhrasesController)
+			player.GET("/details", controllers.GetPlayerDetailsController)
 		}
 
 		// Feedback route
