@@ -43,7 +43,8 @@ func GetGame(gameId string) (*models.Game, error) {
 }
 
 func GetPlayerDetails(playerId string) (*models.Player, error) {
-	result, err := rc.Client.Get(playerId).Result()
+	key := playerId
+	result, err := rc.Client.Get(key).Result()
 	if err != nil {
 		return nil, errors.Wrap(err, "Getting Player failed")
 	}
@@ -59,13 +60,13 @@ func GetPlayerDetails(playerId string) (*models.Player, error) {
 
 func SetPlayerDetails(player models.Player) error {
 	// Convert player object to JSON
-
+	key := *player.Id
 	jsonPlayer, err := json.Marshal(player)
 	if err != nil {
 		return errors.Wrap(err, "Player json conversion failed while setting game")
 	}
 
-	err = rc.Client.Set(*player.Id, jsonPlayer, 24*time.Hour).Err()
+	err = rc.Client.Set(key, jsonPlayer, 24*time.Hour).Err()
 	if err != nil {
 		return errors.Wrap(err, "Failed to set Player in Redis")
 	}
