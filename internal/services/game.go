@@ -291,3 +291,26 @@ func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) 
 
 	return gameMeta, nil
 }
+
+func (gs *GameService) GetRandomizedGamePhrases(gameID string) ([]models.Phrase, error) {
+
+	phraseList, err := gs.GetGamePhrases(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return an empty list if no phrases are available
+	if phraseList == nil || phraseList.List == nil || len(*phraseList.List) == 0 {
+		return nil, errors.New("No phrases found for the game")
+	}
+
+	// Randomize the order of phrases
+	randomizedPhrases := make([]models.Phrase, len(*phraseList.List))
+	copy(randomizedPhrases, *phraseList.List)
+
+	rand.Shuffle(len(randomizedPhrases), func(i, j int) {
+		randomizedPhrases[i], randomizedPhrases[j] = randomizedPhrases[j], randomizedPhrases[i]
+	})
+
+	return randomizedPhrases, nil
+}

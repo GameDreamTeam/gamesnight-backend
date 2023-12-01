@@ -78,6 +78,8 @@ func GetGameMeta(gameId string) (*models.GameMeta, error) {
 func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
 	key := GetGamePhraseKey(gameId)
 
+	// At the very least check if same phrase is not entered twice, maybe using frontend?
+	// Can add checks to whether submitted phrases exist already ( Find a way to do in realtime or upon submit )
 	// Retrieve existing phrases
 	existingPhrasesJSON, err := rc.Client.Get(key).Result()
 	if err != nil && err != redis.Nil {
