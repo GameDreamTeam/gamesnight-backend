@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"gamesnight/internal/database"
 	"gamesnight/internal/models"
 )
 
@@ -29,4 +30,8 @@ func (ps *PlayerService) CreateNewPlayer() (*models.Player, error) {
 		Id: &key,
 	}
 	return player, nil
+}
+
+func (ps *PlayerService) GetPlayerDetails(playerID string) (*models.Player, error) {
+	return database.GetPlayerDetails(playerID)
 }

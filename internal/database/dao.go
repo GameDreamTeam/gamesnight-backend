@@ -42,6 +42,37 @@ func GetGame(gameId string) (*models.Game, error) {
 	return &game, nil
 }
 
+func GetPlayerDetails(playerId string) (*models.Player, error) {
+	key := playerId
+	result, err := rc.Client.Get(key).Result()
+	if err != nil {
+		return nil, errors.Wrap(err, "Getting Player failed")
+	}
+
+	var player models.Player
+	err = json.Unmarshal([]byte(result), &player)
+	if err != nil {
+		return nil, errors.Wrap(err, "Converting player json to game object failed")
+	}
+
+	return &player, nil
+}
+
+func SetPlayerDetails(player models.Player) error {
+	// Convert player object to JSON
+	key := *player.Id
+	jsonPlayer, err := json.Marshal(player)
+	if err != nil {
+		return errors.Wrap(err, "Player json conversion failed while setting game")
+	}
+
+	err = rc.Client.Set(key, jsonPlayer, 24*time.Hour).Err()
+	if err != nil {
+		return errors.Wrap(err, "Failed to set Player in Redis")
+	}
+	return nil
+}
+
 func SetGameMeta(gameMeta *models.GameMeta) error {
 
 	key := GetGameMetaKey(gameMeta.GameId)

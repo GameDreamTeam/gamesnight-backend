@@ -76,9 +76,14 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	}
 
 	err = database.SetGameMeta(gameMeta)
-
 	if err != nil {
 		fmt.Println("Not able to set game")
+		return nil, err
+	}
+
+	err = database.SetPlayerDetails(*player)
+	if err != nil {
+		fmt.Println("Not able to set player")
 		return nil, err
 	}
 
