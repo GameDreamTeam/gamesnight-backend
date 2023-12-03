@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gamesnight/internal/database"
 	"gamesnight/internal/models"
-	"math/rand"
 	"time"
 )
 
@@ -86,56 +85,25 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	return gameMeta, nil
 }
 
-func (gs *GameService) GetGameMeta(gameId string) (*models.GameMeta, error) {
-	return database.GetGameMeta(gameId)
-}
+func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
 
-func (gs *GameService) GetGame(gameId string) (*models.Game, error) {
-	return database.GetGame(gameId)
-}
-
-// func (gs *GameService) StartTurn(player *models.Player) (*models.Game, error) {
-
-// }
-
-func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
-	//Check if game already exists or not before making teams
-
-	// Need to acquire a lock before setting this team
-	game, err := database.GetGame(gamemeta.GameId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Future we have to make number of teams customizable
-	team1, team2 := dividePlayersIntoTeams(*gamemeta.Players)
-
-	// Make these names customizable
-	t1 := models.Team{
-		Name:               "RED",
-		Players:            &team1,
-		Score:              0,
-		CurrentPlayerIndex: 0,
-	}
-
-	t2 := models.Team{
-		Name:               "BLUE",
-		Players:            &team2,
-		Score:              0,
-		CurrentPlayerIndex: 0,
-	}
-
-	teams := []models.Team{t1, t2}
-	game.Teams = &teams
-	game.GameState = models.TeamsDivided
-
-	// Write this to redis
-	err = database.SetGame(game)
-	if err != nil {
-		return nil, err
+	if !contains(*game.Players, player) {
+		*game.Players = append(*game.Players, *player)
+	} else {
+		// Return custom error here (404)
+		return nil, errors.New("player already exists in this game")
 	}
 
 	return game, nil
+}
+
+func contains(playerSlice []models.Player, player *models.Player) bool {
+	for _, p := range playerSlice {
+		if *p.Id == *player.Id {
+			return true
+		}
+	}
+	return false
 }
 
 func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
@@ -161,40 +129,21 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 
 	game.CurrentPlayer = &(*(*game.Teams)[currentTeamIndex].Players)[currentTeamCurrentPlayerIndex]
 	game.NextPlayer = &(*(*game.Teams)[nextTeamIndex].Players)[nextTeamCurrentPlayerIndex]
-	return game, nil
 
-}
+	// Randomize the phrase, make it in a map form
+	phraseStatusMap, err := gs.GetRandomizedGamePhrases(gameId)
+	if err != nil {
+		return nil, err
+	}
 
-func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.Player) {
-	// if team exits in
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r.Shuffle(len(players), func(i, j int) {
-		players[i], players[j] = players[j], players[i]
-	})
-
-	mid := len(players) / 2
-	return players[:mid], players[mid:]
-}
-
-func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
-
-	if !contains(*game.Players, player) {
-		*game.Players = append(*game.Players, *player)
-	} else {
-		// Return custom error here (404)
-		return nil, errors.New("player already exists in this game")
+	// Store the PhraseStatusMap in Redis
+	err = database.SetGamePhraseStatusMap(gameId, phraseStatusMap)
+	if err != nil {
+		return nil, err
 	}
 
 	return game, nil
-}
 
-func contains(playerSlice []models.Player, player *models.Player) bool {
-	for _, p := range playerSlice {
-		if *p.Id == *player.Id {
-			return true
-		}
-	}
-	return false
 }
 
 func getNextTeamIndex(currentIndex int) int {
@@ -202,65 +151,6 @@ func getNextTeamIndex(currentIndex int) int {
 		return 0
 	}
 	return 1
-}
-
-func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
-	// Check if game exists
-	game, err := gs.GetGame(gameId)
-	if err != nil {
-		return err
-	}
-
-	if game.GameState != models.AddingWords {
-		game.GameState = models.AddingWords
-		err = database.SetGame(game)
-		if err != nil {
-			return err
-		}
-	}
-	// Add phrases to the game
-	err = database.SetGamePhrases(gameId, phraseList)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (gs *GameService) AddPhrasesToPlayer(playerId string, phraseList *models.PhraseList) error {
-	// Add phrases to the player
-	err := database.SetPlayerPhrases(playerId, phraseList)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (gs *GameService) GetGamePhrases(gameId string) (*models.PhraseList, error) {
-	// Check if game exists
-	_, err := gs.GetGameMeta(gameId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Fetch phrases for the game
-	phrases, err := database.GetGamePhrases(gameId)
-	if err != nil {
-		return nil, err
-	}
-
-	return phrases, nil
-}
-
-func (ps *PlayerService) GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
-	// Fetch phrases for the player
-	phrases, err := database.GetPlayerPhrases(playerId)
-	if err != nil {
-		return nil, err
-	}
-
-	return phrases, nil
 }
 
 func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) (*models.GameMeta, error) {
@@ -275,7 +165,7 @@ func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) 
 
 	// If the player is not found, return an error
 	if playerIndex == -1 {
-		return nil, errors.New("Player not found in the game")
+		return nil, errors.New("player not found in the game")
 	}
 
 	// Create a new slice excluding the player to be removed
@@ -290,27 +180,4 @@ func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) 
 	}
 
 	return gameMeta, nil
-}
-
-func (gs *GameService) GetRandomizedGamePhrases(gameID string) ([]models.Phrase, error) {
-
-	phraseList, err := gs.GetGamePhrases(gameID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return an empty list if no phrases are available
-	if phraseList == nil || phraseList.List == nil || len(*phraseList.List) == 0 {
-		return nil, errors.New("No phrases found for the game")
-	}
-
-	// Randomize the order of phrases
-	randomizedPhrases := make([]models.Phrase, len(*phraseList.List))
-	copy(randomizedPhrases, *phraseList.List)
-
-	rand.Shuffle(len(randomizedPhrases), func(i, j int) {
-		randomizedPhrases[i], randomizedPhrases[j] = randomizedPhrases[j], randomizedPhrases[i]
-	})
-
-	return randomizedPhrases, nil
 }

@@ -19,20 +19,6 @@ type GameMeta struct {
 	CreatedAt time.Time `json:"cAt"`
 }
 
-type Phrase struct {
-	Input string `json:"input"`
-}
-
-type PhraseList struct {
-	List *[]Phrase `json:"phraseList"`
-}
-
-// Not in  use -> can be used in addPhrase
-type UserInput struct {
-	UserId  string    `json:"userId"`
-	Phrases *[]Phrase `json:"phrases"`
-}
-
 // Maybe teams should be a map of teams and not a slice
 type Game struct {
 	GameId           string    `json:"gameId"`

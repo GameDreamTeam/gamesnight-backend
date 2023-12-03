@@ -164,7 +164,7 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 	if err != nil {
 		if err == redis.Nil {
 			fmt.Println("No phrases found for player in game", playerId)
-			return nil, nil
+			return nil, err
 		}
 		fmt.Println("Error getting player game phrases from Redis:", err)
 		return nil, err
@@ -178,6 +178,49 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 	}
 
 	return &phrases, nil
+}
+func SetGamePhraseStatusMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
+	key := GetGamePhraseStatusMapKey(gameId)
+
+	// Serialize the PhraseStatusMap to JSON
+	jsonMap, err := json.Marshal(phraseStatusMap)
+	if err != nil {
+		return errors.Wrap(err, "error marshaling PhraseStatusMap")
+	}
+
+	// Store in Redis
+	err = rc.Client.Set(key, jsonMap, 24*time.Hour).Err()
+	if err != nil {
+		return errors.Wrap(err, "failed to set PhraseStatusMap in Redis")
+	}
+
+	return nil
+}
+
+func GetGamePhrasesStatusMap(gameId string) (models.PhraseStatusMap, error) {
+	key := GetGamePhraseStatusMapKey(gameId)
+
+	// Fetch the serialized PhraseStatusMap from Redis
+	result, err := rc.Client.Get(key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			// No PhraseStatusMap found for the game, return an empty map
+			return models.PhraseStatusMap{}, nil
+		}
+		return models.PhraseStatusMap{}, errors.Wrap(err, "getting PhraseStatusMap failed")
+	}
+
+	var phraseStatusMap models.PhraseStatusMap
+	err = json.Unmarshal([]byte(result), &phraseStatusMap)
+	if err != nil {
+		return models.PhraseStatusMap{}, errors.Wrap(err, "error unmarshaling PhraseStatusMap")
+	}
+
+	return phraseStatusMap, nil
+}
+
+func GetGamePhraseStatusMapKey(gameId string) string {
+	return fmt.Sprintf("game-phrase-status-map:%s", gameId)
 }
 
 func GetGameKey(gameId string) string {
