@@ -84,6 +84,7 @@ func PlayerGuessController(c *gin.Context) {
 
 	gameId := c.Param("gameId")
 	game, err := services.GetGameService().GetGame(gameId)
+
 	// Throw different error if game is not playing
 	if err != nil || game.GameState != models.Playing {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
@@ -116,13 +117,13 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	currentPhrases, err := services.GetGameService().GetCurrentPhrases(gameId)
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhrases, models.CurrentIndex)
+	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhraseMap, models.CurrentIndex)
 
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)

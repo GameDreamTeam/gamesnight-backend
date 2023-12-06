@@ -210,7 +210,7 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 
 	return &phrases, nil
 }
-func SetCurrentPhrases(gameId string, phraseStatusMap models.PhraseStatusMap) error {
+func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
 	key := GetCurrentPhrasesKey(gameId)
 
 	// Serialize the PhraseStatusMap to JSON
@@ -228,7 +228,7 @@ func SetCurrentPhrases(gameId string, phraseStatusMap models.PhraseStatusMap) er
 	return nil
 }
 
-func GetCurrentPhrases(gameId string) (models.PhraseStatusMap, error) {
+func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
 	key := GetCurrentPhrasesKey(gameId)
 
 	// Fetch the serialized PhraseStatusMap from Redis

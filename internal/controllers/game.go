@@ -91,22 +91,21 @@ func StartGameController(c *gin.Context) {
 		return
 	}
 
-	// Generate Random PhraseMap
-
 	gamePhrases, err := services.GetGameService().GetGamePhrases(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	currentPhrases, err := services.GetGameService().GenerateRandom(gamePhrases)
+	// Generate Random PhraseMap
+	currentPhraseMap, err := services.GetGameService().GenerateRandom(gamePhrases)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
 	// Write turnPhrases to Redis
-	err = services.GetGameService().SetCurrentPhrases(gameId, currentPhrases)
+	err = services.GetGameService().SetCurrentPhraseMap(gameId, currentPhraseMap)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -143,15 +142,15 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	currentPhrases, err := services.GetGameService().GetCurrentPhrases(gameId)
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	models.CurrentIndex = -1
+	models.CurrentIndex = 0
 
-	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhrases, models.CurrentIndex)
+	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhraseMap, models.CurrentIndex)
 
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
