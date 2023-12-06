@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"gamesnight/internal/database"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type GameService struct{}
@@ -90,16 +93,16 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	return gameMeta, nil
 }
 
-func addPlayerToGame(game *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
+func addPlayerToGame(gameMeta *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
 
-	if !contains(*game.Players, player) {
-		*game.Players = append(*game.Players, *player)
+	if !contains(*gameMeta.Players, player) {
+		*gameMeta.Players = append(*gameMeta.Players, *player)
 	} else {
 		// Return custom error here (404)
 		return nil, errors.New("player already exists in this game")
 	}
 
-	return game, nil
+	return gameMeta, nil
 }
 
 func contains(playerSlice []models.Player, player *models.Player) bool {
@@ -135,27 +138,12 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 	game.CurrentPlayer = &(*(*game.Teams)[currentTeamIndex].Players)[currentTeamCurrentPlayerIndex]
 	game.NextPlayer = &(*(*game.Teams)[nextTeamIndex].Players)[nextTeamCurrentPlayerIndex]
 
-	// Randomize the phrase, make it in a map form
-	phraseStatusMap, err := gs.GetRandomizedGamePhrases(gameId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Store the PhraseStatusMap in Redis
-	err = database.SetGamePhraseStatusMap(gameId, phraseStatusMap)
-	if err != nil {
-		return nil, err
-	}
-
 	return game, nil
 
 }
 
 func getNextTeamIndex(currentIndex int) int {
-	if currentIndex == 1 {
-		return 0
-	}
-	return 1
+	return currentIndex ^ 1
 }
 
 func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) (*models.GameMeta, error) {
@@ -185,4 +173,39 @@ func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) 
 	}
 
 	return gameMeta, nil
+}
+
+func (gs *GameService) StartTurnTimer(gameId string) error {
+	game, err := database.GetGame(gameId)
+	if err != nil {
+		return err
+	}
+
+	if game.GameState != models.Playing {
+		game.GameState = models.Playing
+		err = database.SetGame(game)
+		if err != nil {
+			return err
+		}
+	}
+
+	turnDuration := 60 * time.Second
+	timer := time.NewTimer(turnDuration)
+
+	go func() {
+		<-timer.C // This blocks until the timer expires
+
+		//	 err := gs.function(gameId) this function should lead to displaying the changed currentphrases as a form
+		if err != nil {
+			logger.GetLogger().Logger.Error(
+				"error handling timer interrupt",
+				zap.Any("game", game),
+			)
+		}
+	}()
+
+	// Notify clients about the start of the turn
+	// You can use a WebSocket or another communication mechanism for real-time updates
+
+	return nil
 }

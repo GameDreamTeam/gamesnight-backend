@@ -16,6 +16,7 @@ func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error
 		return nil, err
 	}
 
+	// Check if atleast 2 players exist in the game
 	// Future we have to make number of teams customizable
 	team1, team2 := dividePlayersIntoTeams(*gamemeta.Players)
 

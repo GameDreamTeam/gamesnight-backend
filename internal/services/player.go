@@ -21,6 +21,8 @@ func GetPlayerService() *PlayerService {
 func (ps *PlayerService) CreateNewPlayer() (*models.Player, error) {
 	key, err := GetKeyGenerator().CreatePlayerKey()
 
+	// can add a validation for duplicate playerId
+
 	if err != nil {
 		fmt.Printf("Error in creating player key %s", err)
 		return nil, err

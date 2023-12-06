@@ -25,7 +25,6 @@ func SetupRouter(r *gin.Engine) {
 			game.GET("/:gameId/start", controllers.StartGameController)
 			game.POST("/:gameId/start-turn", controllers.StartTurnController)
 			game.POST("/:gameId/:playerId/remove", controllers.RemovePlayerController)
-			// game.GET("/:gameId/play", controllers.GeneratePhraseController)
 		}
 
 		// Player routes

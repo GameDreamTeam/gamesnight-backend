@@ -32,7 +32,6 @@ func getPlayerOrCreateNew(c *gin.Context) (*models.Player, error) {
 	if err != nil {
 		return createPlayer(c)
 	}
-
 	player, err := services.GetTokenService().ParsePlayerToken(playerCookie)
 	if err != nil {
 		logger.GetLogger().Logger.Error("Auth token", zap.Error(err))

@@ -210,8 +210,8 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 
 	return &phrases, nil
 }
-func SetGamePhraseStatusMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
-	key := GetGamePhraseStatusMapKey(gameId)
+func SetCurrentPhrases(gameId string, phraseStatusMap models.PhraseStatusMap) error {
+	key := GetCurrentPhrasesKey(gameId)
 
 	// Serialize the PhraseStatusMap to JSON
 	jsonMap, err := json.Marshal(phraseStatusMap)
@@ -228,8 +228,8 @@ func SetGamePhraseStatusMap(gameId string, phraseStatusMap models.PhraseStatusMa
 	return nil
 }
 
-func GetGamePhrasesStatusMap(gameId string) (models.PhraseStatusMap, error) {
-	key := GetGamePhraseStatusMapKey(gameId)
+func GetCurrentPhrases(gameId string) (models.PhraseStatusMap, error) {
+	key := GetCurrentPhrasesKey(gameId)
 
 	// Fetch the serialized PhraseStatusMap from Redis
 	result, err := rc.Client.Get(key).Result()
@@ -238,7 +238,7 @@ func GetGamePhrasesStatusMap(gameId string) (models.PhraseStatusMap, error) {
 			// No PhraseStatusMap found for the game, return an empty map
 			return models.PhraseStatusMap{}, nil
 		}
-		return models.PhraseStatusMap{}, errors.Wrap(err, "getting PhraseStatusMap failed")
+		return models.PhraseStatusMap{}, errors.Wrap(err, "getting current phrase map failed")
 	}
 
 	var phraseStatusMap models.PhraseStatusMap
@@ -250,8 +250,8 @@ func GetGamePhrasesStatusMap(gameId string) (models.PhraseStatusMap, error) {
 	return phraseStatusMap, nil
 }
 
-func GetGamePhraseStatusMapKey(gameId string) string {
-	return fmt.Sprintf("game-phrase-status-map:%s", gameId)
+func GetCurrentPhrasesKey(gameId string) string {
+	return fmt.Sprintf("current-phrases:%s", gameId)
 }
 
 func GetGameKey(gameId string) string {

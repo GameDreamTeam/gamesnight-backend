@@ -12,6 +12,12 @@ import (
 )
 
 func MakeTeamsController(c *gin.Context) {
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
 	gameId := c.Param("gameId")
 	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
 	if err != nil {
@@ -19,11 +25,6 @@ func MakeTeamsController(c *gin.Context) {
 		return
 	}
 
-	p, exists := c.Get("player")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
 	player := p.(*models.Player)
 
 	if *player.Id != gamemeta.AdminId {

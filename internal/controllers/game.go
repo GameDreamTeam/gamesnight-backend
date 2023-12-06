@@ -91,10 +91,36 @@ func StartGameController(c *gin.Context) {
 		return
 	}
 
+	// Generate Random PhraseMap
+
+	gamePhrases, err := services.GetGameService().GetGamePhrases(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	currentPhrases, err := services.GetGameService().GenerateRandom(gamePhrases)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	// Write turnPhrases to Redis
+	err = services.GetGameService().SetCurrentPhrases(gameId, currentPhrases)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
 	SendResponse(c, http.StatusOK, game, nil)
 }
 
 func StartTurnController(c *gin.Context) {
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
 
 	gameId := c.Param("gameId")
 	game, err := services.GetGameService().GetGame(gameId)
@@ -104,11 +130,6 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	p, exists := c.Get("player")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		return
-	}
 	player := p.(*models.Player)
 
 	if *player.Id != *game.CurrentPlayer.Id {
@@ -122,12 +143,32 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
+	currentPhrases, err := services.GetGameService().GetCurrentPhrases(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	SendResponse(c, http.StatusOK, game, nil)
+	currentIndex := -1
+
+	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhrases, currentIndex)
+
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	responseData := struct {
+		Game       *models.Game
+		NextPhrase string `json:"nextPhrase"`
+	}{
+		Game:       game,
+		NextPhrase: nextPhrase,
+	}
+
+	services.GetGameService().StartTurnTimer(gameId)
+
+	SendResponse(c, http.StatusOK, responseData, nil)
 }
 
 func RemovePlayerController(c *gin.Context) {
