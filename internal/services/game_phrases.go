@@ -156,7 +156,20 @@ func (gs *GameService) GetNextPhrase(currentPhrases models.PhraseStatusMap, inde
 	return phrase, nil
 }
 
-func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string) error {
+func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string, key string) error {
+	currentPhrases, err := gs.GetCurrentPhrases(gameId)
+	if err != nil {
+		return err
+	}
 
-	return errors.New("a")
+	// Update the choice based on the request
+	if choice == "guessed" {
+		currentPhrases.Phrases[key] = models.Guessed
+	} else {
+		// no change needed
+	}
+
+	gs.SetCurrentPhrases(gameId, &currentPhrases)
+
+	return nil
 }

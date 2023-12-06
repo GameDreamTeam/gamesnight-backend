@@ -73,6 +73,9 @@ func GetPlayerPhrasesController(c *gin.Context) {
 }
 
 func PlayerGuessController(c *gin.Context) {
+
+	// can remove validations here to make API lightweight
+
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
@@ -101,19 +104,39 @@ func PlayerGuessController(c *gin.Context) {
 	}
 
 	// Parse request body
-	var guessRequest models.PlayerGuess
+	var guessRequest models.PlayerGuessWithWord
 	if err := c.BindJSON(&guessRequest); err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)
 		return
 	}
 
-	err = services.GetGameService().HandlePlayerGuess(gameId, player.Id, guessRequest.PlayerChoice)
+	// Store the current word in the player's context
+	c.Set("currentWord", guessRequest.KeyPhrase)
+
+	err = services.GetGameService().HandlePlayerGuess(gameId, player.Id, guessRequest.PlayerChoice, guessRequest.KeyPhrase)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	// add service to get next phrase and return it in response body.
+	currentPhrases, err := services.GetGameService().GetCurrentPhrases(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
 
-	SendResponse(c, http.StatusOK, game, nil)
+	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhrases, models.CurrentIndex)
+
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	responseData := models.ResponseData{
+		Game:       game,
+		NextPhrase: nextPhrase,
+	}
+
+	SendResponse(c, http.StatusOK, responseData, nil)
+
 }
