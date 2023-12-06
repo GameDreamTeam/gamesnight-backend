@@ -110,9 +110,6 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	// Store the current word in the player's context
-	c.Set("currentWord", guessRequest.KeyPhrase)
-
 	err = services.GetGameService().HandlePlayerGuess(gameId, player.Id, guessRequest.PlayerChoice, guessRequest.KeyPhrase)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
