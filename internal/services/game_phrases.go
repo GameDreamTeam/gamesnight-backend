@@ -69,6 +69,7 @@ func (ps *PlayerService) GetPlayerPhrases(playerId string) (*models.PhraseList, 
 
 func (gs *GameService) GenerateRandom(phrases *models.PhraseList) (*models.PhraseStatusMap, error) {
 	if phrases == nil || phrases.List == nil {
+		// return error
 		return &models.PhraseStatusMap{Phrases: make(map[string]models.PhraseStatus)}, nil
 	}
 
@@ -157,4 +158,5 @@ func (gs *GameService) GetNextPhrase(currentPhrases models.PhraseStatusMap, inde
 
 func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string) error {
 
+	return errors.New("a")
 }

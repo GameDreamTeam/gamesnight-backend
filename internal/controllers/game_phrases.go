@@ -113,5 +113,7 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
+	// add service to get next phrase and return it in response body.
+
 	SendResponse(c, http.StatusOK, game, nil)
 }
