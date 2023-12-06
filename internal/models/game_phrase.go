@@ -7,6 +7,10 @@ const (
 	Guessed
 )
 
+var (
+	CurrentIndex int = -1
+)
+
 type Phrase struct {
 	Input string `json:"input"`
 }
@@ -17,4 +21,8 @@ type PhraseList struct {
 
 type PhraseStatusMap struct {
 	Phrases map[string]PhraseStatus `json:"phraseListMap"`
+}
+
+type PlayerGuess struct {
+	PlayerChoice string `json:"playerChoice"`
 }

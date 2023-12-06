@@ -154,3 +154,7 @@ func (gs *GameService) GetNextPhrase(currentPhrases models.PhraseStatusMap, inde
 
 	return phrase, nil
 }
+
+func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string) error {
+
+}

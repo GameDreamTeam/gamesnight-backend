@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"errors"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func AddPhraseController(c *gin.Context) {
@@ -68,4 +70,48 @@ func GetPlayerPhrasesController(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, phrases)
+}
+
+func PlayerGuessController(c *gin.Context) {
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
+	gameId := c.Param("gameId")
+	game, err := services.GetGameService().GetGame(gameId)
+	// Throw different error if game is not playing
+	if err != nil || game.GameState != models.Playing {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	player := p.(*models.Player)
+
+	if *player.Id != *game.CurrentPlayer.Id {
+		logger.GetLogger().Logger.Error(
+			"player making guess should be current player",
+			zap.Any("game", game),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("player making guess should be current player"))
+		return
+	}
+
+	// Parse request body
+	var guessRequest models.PlayerGuess
+	if err := c.BindJSON(&guessRequest); err != nil {
+		SendResponse(c, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	err = services.GetGameService().HandlePlayerGuess(gameId, player.Id, guessRequest.PlayerChoice)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	SendResponse(c, http.StatusOK, game, nil)
 }

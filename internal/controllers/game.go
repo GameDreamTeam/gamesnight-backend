@@ -149,9 +149,9 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	currentIndex := -1
+	models.CurrentIndex = -1
 
-	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhrases, currentIndex)
+	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhrases, models.CurrentIndex)
 
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
