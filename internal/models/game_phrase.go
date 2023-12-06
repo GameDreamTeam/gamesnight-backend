@@ -26,3 +26,8 @@ type PhraseStatusMap struct {
 type PlayerGuess struct {
 	PlayerChoice string `json:"playerChoice"`
 }
+
+type ResponseData struct {
+	Game       *Game
+	NextPhrase string `json:"nextPhrase"`
+}

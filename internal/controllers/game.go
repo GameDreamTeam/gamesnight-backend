@@ -158,10 +158,7 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	responseData := struct {
-		Game       *models.Game
-		NextPhrase string `json:"nextPhrase"`
-	}{
+	responseData := models.ResponseData{
 		Game:       game,
 		NextPhrase: nextPhrase,
 	}
