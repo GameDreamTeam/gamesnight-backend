@@ -1,14 +1,10 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 	"gamesnight/internal/database"
-	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"time"
-
-	"go.uber.org/zap"
 )
 
 type GameService struct{}
@@ -64,7 +60,6 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 }
 
 func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.GameMeta, error) {
-
 	// Check the state of game here
 
 	// This entire portion has to acquire a lock when having high concurrency
@@ -93,27 +88,6 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	return gameMeta, nil
 }
 
-func addPlayerToGame(gameMeta *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
-
-	if !contains(*gameMeta.Players, player) {
-		*gameMeta.Players = append(*gameMeta.Players, *player)
-	} else {
-		// Return custom error here (404)
-		return nil, errors.New("player already exists in this game")
-	}
-
-	return gameMeta, nil
-}
-
-func contains(playerSlice []models.Player, player *models.Player) bool {
-	for _, p := range playerSlice {
-		if *p.Id == *player.Id {
-			return true
-		}
-	}
-	return false
-}
-
 func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 	//Check if game is teams divided and ready to start
 
@@ -139,73 +113,4 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 	}
 
 	return game, nil
-
-}
-
-func getNextTeamIndex(currentIndex int) int {
-	return currentIndex ^ 1
-}
-
-func (gs *GameService) RemovePlayer(gameMeta *models.GameMeta, playerID string) (*models.GameMeta, error) {
-	// Find the index of the player in the Players slice
-	playerIndex := -1
-	for i, player := range *gameMeta.Players {
-		if *player.Id == playerID {
-			playerIndex = i
-			break
-		}
-	}
-
-	// If the player is not found, return an error
-	if playerIndex == -1 {
-		return nil, errors.New("player not found in the game")
-	}
-
-	// Create a new slice excluding the player to be removed
-	updatedPlayers := append((*gameMeta.Players)[:playerIndex], (*gameMeta.Players)[playerIndex+1:]...)
-
-	// Update the gameMeta with the new slice
-	gameMeta.Players = &updatedPlayers
-
-	err := database.SetGameMeta(gameMeta)
-	if err != nil {
-		return nil, err
-	}
-
-	return gameMeta, nil
-}
-
-func (gs *GameService) StartTurnTimer(gameId string) error {
-	game, err := database.GetGame(gameId)
-	if err != nil {
-		return err
-	}
-
-	if game.GameState != models.Playing {
-		game.GameState = models.Playing
-		err = database.SetGame(game)
-		if err != nil {
-			return err
-		}
-	}
-
-	turnDuration := 60 * time.Second
-	timer := time.NewTimer(turnDuration)
-
-	go func() {
-		<-timer.C // This blocks until the timer expires
-
-		//	 err := gs.function(gameId) this function should lead to displaying the changed currentphrases as a form
-		if err != nil {
-			logger.GetLogger().Logger.Error(
-				"error handling timer interrupt",
-				zap.Any("game", game),
-			)
-		}
-	}()
-
-	// Notify clients about the start of the turn
-	// You can use a WebSocket or another communication mechanism for real-time updates
-
-	return nil
 }

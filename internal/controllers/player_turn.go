@@ -11,71 +11,100 @@ import (
 	"go.uber.org/zap"
 )
 
-func AddPhraseController(c *gin.Context) {
+func StartTurnController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		return
 	}
 
-	var phraseList models.PhraseList
+	gameId := c.Param("gameId")
+	game, err := services.GetGameService().GetGame(gameId)
+	// Throw different error if game is not playing
+	if err != nil || game.GameState != models.Playing {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
 	player := p.(*models.Player)
-	playerId := *player.Id
-	gameId := c.Param("gameId")
+	models.CurrentIndex = 0
 
-	if err := c.BindJSON(&phraseList); err != nil {
-		SendResponse(c, http.StatusBadRequest, nil, err)
+	if *player.Id != *game.CurrentPlayer.Id {
+		logger.GetLogger().Logger.Error(
+			"player starting turn should be current player",
+			zap.Any("game", game),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("player starting turn should be current player"))
 		return
 	}
 
-	if len(*phraseList.List) != 4 {
-		SendResponse(c, http.StatusBadRequest, nil, errors.New("total length of phrases must be 4"))
-		return
-	}
-
-	err := services.GetGameService().AddPhrasesToGame(gameId, &phraseList)
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	err = services.GetGameService().AddPhrasesToPlayer(playerId, &phraseList)
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap)
+
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": "Phrases added successfully"})
+	responseData := models.ResponseData{
+		PhraseMap:     &currentPhraseMap,
+		CurrentPhrase: PhraseToBeGuessed,
+	}
+
+	services.GetGameService().StartTurnTimer(gameId)
+
+	SendResponse(c, http.StatusOK, responseData, nil)
 }
 
-func GetGamePhrasesController(c *gin.Context) {
+func EndTurnController(c *gin.Context) {
+	p, exists := c.Get("player")
+	if !exists {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		return
+	}
+
 	gameId := c.Param("gameId")
-
-	phrases, err := services.GetGameService().GetGamePhrases(gameId)
-	if err != nil {
+	game, err := services.GetGameService().GetGame(gameId)
+	// Throw different error if game is not playing
+	if err != nil || game.GameState != models.Playing {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, phrases)
-}
-
-func GetPlayerPhrasesController(c *gin.Context) {
-	playerId := c.Param("playerId")
-
-	phrases, err := services.GetPlayerService().GetPlayerPhrases(playerId)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+	player := p.(*models.Player)
+	if *player.Id != *game.CurrentPlayer.Id {
+		logger.GetLogger().Logger.Error(
+			"player ending turn should be current player",
+			zap.Any("game", game),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("player ending turn should be current player"))
 		return
 	}
 
-	c.JSON(http.StatusOK, phrases)
+	//Update current player to next player
+	game.CurrentPlayer = game.NextPlayer
+
+	//Update Set new next player
+
+	//Write only not guessed word in redis
+	// currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
+	// if err != nil {
+	// 	SendResponse(c, http.StatusInternalServerError, nil, err)
+	// 	return
+	// }
 }
 
 func PlayerGuessController(c *gin.Context) {
-
 	// can remove validations here to make API lightweight
-
 	p, exists := c.Get("player")
 	if !exists {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})

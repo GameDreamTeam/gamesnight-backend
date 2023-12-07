@@ -1,0 +1,68 @@
+package services
+
+import (
+	"gamesnight/internal/database"
+	"gamesnight/internal/models"
+)
+
+func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
+	// Check if game exists
+	game, err := gs.GetGame(gameId)
+	if err != nil {
+		return err
+	}
+
+	if game.GameState != models.AddingWords {
+		game.GameState = models.AddingWords
+		err = database.SetGame(game)
+		if err != nil {
+			return err
+		}
+	}
+	// Add phrases to the game
+	err = database.SetGamePhrases(gameId, phraseList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gs *GameService) AddPhrasesToPlayer(playerId string, phraseList *models.PhraseList) error {
+	// Add validation for playerId exists or not in the current game
+	// Add phrases to the player
+	err := database.SetPlayerPhrases(playerId, phraseList)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gs *GameService) GetGamePhrases(gameId string) (*models.PhraseList, error) {
+	// Fetch phrases for the game
+	phrases, err := database.GetGamePhrases(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	return phrases, nil
+}
+
+func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases models.PhraseStatusMap) error {
+	err := database.SetCurrentPhraseMap(gameId, currentPhrases)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (gs *GameService) GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
+	currentPhrases, err := database.GetCurrentPhraseMap(gameId)
+	if err != nil {
+		return models.PhraseStatusMap{}, err
+	}
+
+	return currentPhrases, nil
+}

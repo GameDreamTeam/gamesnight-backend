@@ -3,8 +3,6 @@ package services
 import (
 	"gamesnight/internal/database"
 	"gamesnight/internal/models"
-	"math/rand"
-	"time"
 )
 
 func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
@@ -46,15 +44,4 @@ func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error
 	}
 
 	return game, nil
-}
-
-func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.Player) {
-	// if team exits in
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	r.Shuffle(len(players), func(i, j int) {
-		players[i], players[j] = players[j], players[i]
-	})
-
-	mid := len(players) / 2
-	return players[:mid], players[mid:]
 }

@@ -210,8 +210,9 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 
 	return &phrases, nil
 }
+
 func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
-	key := GetCurrentPhrasesKey(gameId)
+	key := GetCurrentPhraseMapKey(gameId)
 
 	// Serialize the PhraseStatusMap to JSON
 	jsonMap, err := json.Marshal(phraseStatusMap)
@@ -229,7 +230,7 @@ func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) 
 }
 
 func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
-	key := GetCurrentPhrasesKey(gameId)
+	key := GetCurrentPhraseMapKey(gameId)
 
 	// Fetch the serialized PhraseStatusMap from Redis
 	result, err := rc.Client.Get(key).Result()
@@ -248,24 +249,4 @@ func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
 	}
 
 	return phraseStatusMap, nil
-}
-
-func GetCurrentPhrasesKey(gameId string) string {
-	return fmt.Sprintf("current-phrases:%s", gameId)
-}
-
-func GetGameKey(gameId string) string {
-	return fmt.Sprintf("game:%s", gameId)
-}
-
-func GetGameMetaKey(gameId string) string {
-	return fmt.Sprintf("gamemeta:%s", gameId)
-}
-
-func GetGamePhraseKey(gameId string) string {
-	return fmt.Sprintf("game-phrase:%s", gameId)
-}
-
-func GetPlayerPhraseKey(playerId string) string {
-	return fmt.Sprintf("player-phrase:%s", playerId)
 }
