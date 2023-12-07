@@ -66,10 +66,10 @@ func (ps *PlayerService) GetPlayerPhrases(playerId string) (*models.PhraseList, 
 	return phrases, nil
 }
 
-func (gs *GameService) GeneratePhraseListToMap(phrases *models.PhraseList) (*models.PhraseStatusMap, error) {
+func (gs *GameService) GeneratePhraseListToMap(phrases *models.PhraseList) (models.PhraseStatusMap, error) {
 	if phrases == nil || phrases.List == nil {
 		// return error
-		return &models.PhraseStatusMap{Phrases: make(map[string]models.PhraseStatus)}, errors.New("no phrases found")
+		return models.PhraseStatusMap{}, errors.New("no phrases found")
 	}
 
 	// Clone the original list to avoid modifying the original
@@ -82,16 +82,21 @@ func (gs *GameService) GeneratePhraseListToMap(phrases *models.PhraseList) (*mod
 	// })
 
 	// Create a map with random phrases and empty string values
-	phraseStatusMap := make(map[string]models.PhraseStatus)
-	for _, phrase := range *phrases.List {
-		phraseStatusMap[phrase.Input] = models.NotGuessed
+	phraseStatusMap := models.PhraseStatusMap{
+		Phrases: make([]models.Phrase, len(*phrases.List)),
+		Status:  make([]models.PhraseStatus, len(*phrases.List)),
+	}
+
+	for i, phrase := range *phrases.List {
+		phraseStatusMap.Phrases[i] = phrase
+		phraseStatusMap.Status[i] = models.NotGuessed
 	}
 
 	// Return the new PhraseStatusMap with randomized phrases
-	return &models.PhraseStatusMap{Phrases: phraseStatusMap}, nil
+	return phraseStatusMap, nil
 }
 
-func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases *models.PhraseStatusMap) error {
+func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases models.PhraseStatusMap) error {
 	// Check if game exists
 	// game, err := gs.GetGame(gameId)
 	// if err != nil {
@@ -106,7 +111,7 @@ func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases *models
 	// 	}
 	// }
 	// Add phraseMap to the game
-	err := database.SetCurrentPhraseMap(gameId, *currentPhrases)
+	err := database.SetCurrentPhraseMap(gameId, currentPhrases)
 	if err != nil {
 		return err
 	}
@@ -138,25 +143,22 @@ func (gs *GameService) GetCurrentPhraseMap(gameId string) (models.PhraseStatusMa
 	return currentPhrases, nil
 }
 
-func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap, index int) (string, error) {
-	var keys []string
-	for key := range currentPhrases.Phrases {
-		keys = append(keys, key)
-	}
+// Fetches Phrase at index i from PhraseMap
+func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap) (string, error) {
 
 	// Check if the index is within range
 	//Check if Phrase is Guessed or not
-	if index >= len(keys) {
+	if models.CurrentIndex >= len(currentPhrases.Phrases) {
 		return "", errors.New("index out of range")
 	}
 
 	// Get the phrase at the specified index
-	phrase := keys[index]
+	phrase := currentPhrases.Phrases[models.CurrentIndex]
 
-	return phrase, nil
+	return phrase.Input, nil
 }
 
-func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string, key string) error {
+func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string) error {
 	currentPhrases, err := gs.GetCurrentPhraseMap(gameId)
 	if err != nil {
 		return err
@@ -164,10 +166,10 @@ func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice
 
 	// Update the choice based on the request
 	if choice == "guessed" {
-		currentPhrases.Phrases[key] = models.Guessed
+		currentPhrases.Status[models.CurrentIndex] = models.Guessed
 	}
 
-	gs.SetCurrentPhraseMap(gameId, &currentPhrases)
+	gs.SetCurrentPhraseMap(gameId, currentPhrases)
 	models.CurrentIndex += 1
 
 	return nil

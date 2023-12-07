@@ -20,15 +20,15 @@ type PhraseList struct {
 }
 
 type PhraseStatusMap struct {
-	Phrases map[string]PhraseStatus `json:"phraseListMap"`
+	Phrases []Phrase       `json:"phraseList"`
+	Status  []PhraseStatus `json:"statusList"`
 }
 
 type PlayerGuessWithWord struct {
 	PlayerChoice string `json:"playerChoice"`
-	KeyPhrase    string `json:"currentPhrase"`
 }
 
 type ResponseData struct {
 	PhraseMap     *PhraseStatusMap `json:"phraseListMap"`
-	CurrentPhrase string           `json:"nextPhrase"`
+	CurrentPhrase string           `json:"currentPhrase"`
 }

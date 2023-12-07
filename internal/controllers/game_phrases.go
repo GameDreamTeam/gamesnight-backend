@@ -111,7 +111,7 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	err = services.GetGameService().HandlePlayerGuess(gameId, player.Id, guessRequest.PlayerChoice, guessRequest.KeyPhrase)
+	err = services.GetGameService().HandlePlayerGuess(gameId, player.Id, guessRequest.PlayerChoice)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -123,7 +123,7 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, models.CurrentIndex)
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap)
 
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
