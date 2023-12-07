@@ -8,7 +8,7 @@ const (
 )
 
 var (
-	CurrentIndex int = -1
+	CurrentIndex int = 0
 )
 
 type Phrase struct {
@@ -29,6 +29,6 @@ type PlayerGuessWithWord struct {
 }
 
 type ResponseData struct {
-	Game       *Game
-	NextPhrase string `json:"nextPhrase"`
+	PhraseMap     *PhraseStatusMap `json:"phraseListMap"`
+	CurrentPhrase string           `json:"nextPhrase"`
 }

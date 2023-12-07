@@ -123,7 +123,7 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	nextPhrase, err := services.GetGameService().GetNextPhrase(currentPhraseMap, models.CurrentIndex)
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, models.CurrentIndex)
 
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
@@ -131,8 +131,8 @@ func PlayerGuessController(c *gin.Context) {
 	}
 
 	responseData := models.ResponseData{
-		Game:       game,
-		NextPhrase: nextPhrase,
+		PhraseMap:     &currentPhraseMap,
+		CurrentPhrase: PhraseToBeGuessed,
 	}
 
 	SendResponse(c, http.StatusOK, responseData, nil)
