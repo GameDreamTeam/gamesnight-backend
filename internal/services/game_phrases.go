@@ -121,18 +121,18 @@ func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases models.
 
 func (gs *GameService) GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
 	// Check if game exists
-	game, err := gs.GetGame(gameId)
-	if err != nil {
-		return models.PhraseStatusMap{}, err
-	}
+	// game, err := gs.GetGame(gameId)
+	// if err != nil {
+	// 	return models.PhraseStatusMap{}, err
+	// }
 
-	if game.GameState != models.Playing {
-		game.GameState = models.Playing
-		err = database.SetGame(game)
-		if err != nil {
-			return models.PhraseStatusMap{}, err
-		}
-	}
+	// if game.GameState != models.Playing {
+	// 	game.GameState = models.Playing
+	// 	err = database.SetGame(game)
+	// 	if err != nil {
+	// 		return models.PhraseStatusMap{}, err
+	// 	}
+	// }
 
 	// Get the current phrase map from redis
 	currentPhrases, err := database.GetCurrentPhraseMap(gameId)
@@ -158,7 +158,7 @@ func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMa
 	return phrase.Input, nil
 }
 
-func (gs *GameService) HandlePlayerGuess(gameId string, playerId *string, choice string) error {
+func (gs *GameService) HandlePlayerGuess(gameId string, choice string) error {
 	currentPhrases, err := gs.GetCurrentPhraseMap(gameId)
 	if err != nil {
 		return err
