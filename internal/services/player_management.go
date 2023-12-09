@@ -77,3 +77,18 @@ func (ps *PlayerService) RemovePlayer(gameMeta *models.GameMeta, playerID string
 
 	return gameMeta, nil
 }
+
+func (ps *PlayerService) NextPlayerAndTeam(gameId string) (*models.Game, error) {
+	game, err := database.GetGame(gameId)
+	if err != nil {
+		return game, err
+	}
+	updateGame := ChangeNextPlayerAndTeam(game)
+
+	err = database.SetGame(updateGame)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}

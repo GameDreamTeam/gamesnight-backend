@@ -96,18 +96,10 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 		return nil, err
 	}
 
-	game.GameState = models.Playing
-
 	//Minimum 2 players need to present otherwise it will throw out of bounds in array
-	currentTeamIndex := game.CurrentTeamIndex
-	nextTeamIndex := getNextTeamIndex(game.CurrentTeamIndex)
-	currentTeamCurrentPlayerIndex := (*game.Teams)[currentTeamIndex].CurrentPlayerIndex
-	nextTeamCurrentPlayerIndex := (*game.Teams)[nextTeamIndex].CurrentPlayerIndex
+	updatedGame := StartingCurrentAndNextPlayer(game)
 
-	game.CurrentPlayer = &(*(*game.Teams)[currentTeamIndex].Players)[currentTeamCurrentPlayerIndex]
-	game.NextPlayer = &(*(*game.Teams)[nextTeamIndex].Players)[nextTeamCurrentPlayerIndex]
-
-	err = database.SetGame(game)
+	err = database.SetGame(updatedGame)
 	if err != nil {
 		return nil, err
 	}

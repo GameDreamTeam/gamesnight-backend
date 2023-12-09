@@ -23,7 +23,7 @@ func getNextTeamIndex(currentIndex int) int {
 
 func addPlayerToGame(gameMeta *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
 
-	if contains(*gameMeta.Players, player) {
+	if !contains(*gameMeta.Players, player) {
 		*gameMeta.Players = append(*gameMeta.Players, *player)
 	} else {
 		// Return custom error here (404)
@@ -63,7 +63,79 @@ func GeneratePhraseListToMap(phrases *models.PhraseList) (models.PhraseStatusMap
 	return phraseStatusMap, nil
 }
 
-func (gs *GameService) StartTurnTimer(gameId string) error {
+func ChangeNextPlayerAndTeam(game *models.Game) *models.Game {
+	//Get CurrentTeam Index
+	newNextTeamIndex := game.CurrentTeamIndex
+
+	//Get NextTeam Index
+	newCurrentTeamIndex := getNextTeamIndex(newNextTeamIndex)
+
+	//Get CurrentTeam NewPlayerIndex
+	newNextPlayerIndex := (*game.Teams)[newNextTeamIndex].CurrentPlayerIndex + 1
+
+	//Get NextTeam NewPlayerIndex
+	newCurrentPlayerIndex := (*game.Teams)[newCurrentTeamIndex].CurrentPlayerIndex
+
+	//Get CurrentTeam
+	newNextTeam := (*game.Teams)[newNextTeamIndex]
+
+	//Get NextTeam
+	newCurrentTeam := (*game.Teams)[newCurrentTeamIndex]
+
+	//Check if NewPlayerIndexes lie in range
+	if newNextPlayerIndex < len(*newNextTeam.Players) && newCurrentPlayerIndex < len(*newCurrentTeam.Players) {
+		//Set the CurrentPlayer
+		game.CurrentPlayer = &(*(*game.Teams)[newCurrentTeamIndex].Players)[newCurrentPlayerIndex]
+
+		//Set the NextPlayer
+		game.NextPlayer = &(*(*game.Teams)[newNextTeamIndex].Players)[newNextPlayerIndex]
+
+		//Set the NewTeam
+		game.CurrentTeamIndex = newCurrentTeamIndex
+		(*game.Teams)[newNextTeamIndex].CurrentPlayerIndex = newNextPlayerIndex
+
+	} else if newNextPlayerIndex < len(*newCurrentTeam.Players) {
+		game.CurrentPlayer = &(*(*game.Teams)[newCurrentTeamIndex].Players)[newCurrentPlayerIndex]
+		game.CurrentTeamIndex = newCurrentTeamIndex
+		game.NextPlayer = nil
+	} else {
+		// If you are here then there are pending phrases and all players have taken there chance once
+
+		// Set the Team.CurrentPlayerIndex to 0 so that pending words are completed
+		(*game.Teams)[newNextTeamIndex].CurrentPlayerIndex = 0
+		(*game.Teams)[newCurrentTeamIndex].CurrentPlayerIndex = 0
+
+		//Call the function again
+		ChangeNextPlayerAndTeam(game)
+	}
+
+	return game
+}
+
+func StartingCurrentAndNextPlayer(game *models.Game) *models.Game {
+	game.GameState = models.Playing
+	//Get CurrentTeam Index
+	currentTeamIndex := game.CurrentTeamIndex
+
+	//Get NextTeam Index
+	nextTeamIndex := getNextTeamIndex(game.CurrentTeamIndex)
+
+	//Get CurrentTeam NewPlayerIndex
+	currentTeamCurrentPlayerIndex := (*game.Teams)[currentTeamIndex].CurrentPlayerIndex
+
+	//Get NextTeam NewPlayerIndex
+	nextTeamCurrentPlayerIndex := (*game.Teams)[nextTeamIndex].CurrentPlayerIndex
+
+	//Set the CurrentPlayer
+	game.CurrentPlayer = &(*(*game.Teams)[currentTeamIndex].Players)[currentTeamCurrentPlayerIndex]
+
+	//Set the NextPlayer
+	game.NextPlayer = &(*(*game.Teams)[nextTeamIndex].Players)[nextTeamCurrentPlayerIndex]
+
+	return game
+}
+
+func StartTurnTimer(gameId string) error {
 	game, err := database.GetGame(gameId)
 	if err != nil {
 		return err

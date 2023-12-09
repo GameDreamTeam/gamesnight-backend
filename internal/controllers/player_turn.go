@@ -58,7 +58,7 @@ func StartTurnController(c *gin.Context) {
 		CurrentPhrase: PhraseToBeGuessed,
 	}
 
-	services.GetGameService().StartTurnTimer(gameId)
+	// services.GetGameService().StartTurnTimer(gameId)
 
 	SendResponse(c, http.StatusOK, responseData, nil)
 }
@@ -90,17 +90,17 @@ func EndTurnController(c *gin.Context) {
 		return
 	}
 
-	//Update current player to next player
-	game.CurrentPlayer = game.NextPlayer
-
-	//Update Set new next player
-
-	//Write only not guessed word in redis
-	// currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
-	// if err != nil {
-	// 	SendResponse(c, http.StatusInternalServerError, nil, err)
-	// 	return
-	// }
+	_, err = services.GetPlayerService().NextPlayerAndTeam(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+	SendResponse(c, http.StatusOK, currentPhraseMap, nil)
 }
 
 func PlayerGuessController(c *gin.Context) {
