@@ -8,9 +8,8 @@ import (
 
 func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap) (string, error) {
 
-	// Check if the index is within range
-	//Check if Phrase is Guessed or not
 	if models.CurrentIndex >= len(currentPhrases.Phrases) {
+		//Show EndTheGame
 		return "", errors.New("index out of range")
 	}
 

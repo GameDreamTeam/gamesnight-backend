@@ -101,7 +101,9 @@ func EndTurnController(c *gin.Context) {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	SendResponse(c, http.StatusOK, currentPhraseMap, nil)
+
+	updatedPhraseMap := services.GetGameService().RemoveGuessedPhrases(gameId, currentPhraseMap)
+	SendResponse(c, http.StatusOK, updatedPhraseMap, nil)
 }
 
 func PlayerGuessController(c *gin.Context) {

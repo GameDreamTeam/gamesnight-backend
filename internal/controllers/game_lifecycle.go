@@ -78,8 +78,7 @@ func StartGameController(c *gin.Context) {
 			zap.Any("gamemeta", gamemeta),
 			zap.Any("player", player),
 		)
-		SendResponse(c, http.StatusInternalServerError, nil,
-			errors.New("player starting game should be admin"))
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player starting game should be admin"))
 		return
 	}
 

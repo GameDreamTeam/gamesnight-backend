@@ -41,8 +41,8 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 	}
 
 	gameMeta := models.GameMeta{
-		GameId:    gameId,
-		AdminId:   playerId,
+		GameId:  gameId,
+		AdminId: playerId,
 		//update to get Current time function from utils
 		CreatedAt: time.Now(),
 		Players:   &[]models.Player{},
