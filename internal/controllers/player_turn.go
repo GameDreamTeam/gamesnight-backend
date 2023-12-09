@@ -66,7 +66,7 @@ func StartTurnController(c *gin.Context) {
 func EndTurnController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player does not exist"))
 		return
 	}
 
@@ -110,7 +110,7 @@ func PlayerGuessController(c *gin.Context) {
 	// can remove validations here to make API lightweight
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player does not exist"))
 		return
 	}
 

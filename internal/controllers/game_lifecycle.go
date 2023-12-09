@@ -32,7 +32,7 @@ func NewGameController(c *gin.Context) {
 func JoinGameController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player does not exist"))
 		return
 	}
 	player := p.(*models.Player)
@@ -67,7 +67,7 @@ func StartGameController(c *gin.Context) {
 
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil,  errors.New("player does not exist"))
 		return
 	}
 	player := p.(*models.Player)

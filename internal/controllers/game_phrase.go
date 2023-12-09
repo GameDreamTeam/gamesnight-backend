@@ -12,7 +12,7 @@ import (
 func AddPhraseController(c *gin.Context) {
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("internal server error"))
 		return
 	}
 
@@ -43,7 +43,7 @@ func AddPhraseController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": "Phrases added successfully"})
+	SendResponse(c, http.StatusOK,phraseList,nil)
 }
 
 func GetGamePhrasesController(c *gin.Context) {
@@ -55,5 +55,5 @@ func GetGamePhrasesController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, phrases)
+	SendResponse(c, http.StatusOK, phrases, nil)
 }

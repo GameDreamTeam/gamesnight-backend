@@ -37,7 +37,7 @@ func GetPlayerPhrasesController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, phrases)
+	SendResponse(c, http.StatusOK, phrases, nil)
 }
 
 func RemovePlayerController(c *gin.Context) {
@@ -56,7 +56,7 @@ func RemovePlayerController(c *gin.Context) {
 
 	p, exists := c.Get("player")
 	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 	}
 	player := p.(*models.Player)
 

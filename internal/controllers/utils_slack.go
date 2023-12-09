@@ -30,5 +30,5 @@ func SubmitFeedbackController(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": "Message sent successfully"})
+	SendResponse(c, http.StatusInternalServerError, "message sent successfully", nil)
 }
