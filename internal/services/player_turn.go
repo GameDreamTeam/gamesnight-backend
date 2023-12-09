@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"gamesnight/internal/database"
 	"gamesnight/internal/models"
 )
 
@@ -19,8 +20,8 @@ func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMa
 	return phrase.Input, nil
 }
 
-func (gs *GameService) HandlePlayerGuess(gameId string, choice string) error {
-	currentPhrases, err := gs.GetCurrentPhraseMap(gameId)
+func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) error {
+	currentPhrases, err := gs.GetCurrentPhraseMap(game.GameId)
 	if err != nil {
 		return err
 	}
@@ -28,9 +29,11 @@ func (gs *GameService) HandlePlayerGuess(gameId string, choice string) error {
 	// Update the choice based on the request
 	if choice == "guessed" {
 		currentPhrases.Status[models.CurrentIndex] = models.Guessed
+		(*game.Teams)[game.CurrentTeamIndex].Score+=10
+		database.SetGame(&game)
 	}
 
-	gs.SetCurrentPhraseMap(gameId, currentPhrases)
+	gs.SetCurrentPhraseMap(game.GameId, currentPhrases)
 	models.CurrentIndex += 1
 
 	return nil

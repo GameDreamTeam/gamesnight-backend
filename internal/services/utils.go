@@ -64,50 +64,36 @@ func GeneratePhraseListToMap(phrases *models.PhraseList) (models.PhraseStatusMap
 }
 
 func ChangeNextPlayerAndTeam(game *models.Game) *models.Game {
-	//Get CurrentTeam Index
+	//Get NewNextTeam
 	newNextTeamIndex := game.CurrentTeamIndex
 
-	//Get NextTeam Index
+	//Get NewCurrentTeam
 	newCurrentTeamIndex := getNextTeamIndex(newNextTeamIndex)
 
-	//Get CurrentTeam NewPlayerIndex
-	newNextPlayerIndex := (*game.Teams)[newNextTeamIndex].CurrentPlayerIndex + 1
-
-	//Get NextTeam NewPlayerIndex
-	newCurrentPlayerIndex := (*game.Teams)[newCurrentTeamIndex].CurrentPlayerIndex
-
-	//Get CurrentTeam
+	//Get NewNextTeam
 	newNextTeam := (*game.Teams)[newNextTeamIndex]
 
-	//Get NextTeam
+	//Get NewCurrentTeam
 	newCurrentTeam := (*game.Teams)[newCurrentTeamIndex]
 
-	//Check if NewPlayerIndexes lie in range
-	if newNextPlayerIndex < len(*newNextTeam.Players) && newCurrentPlayerIndex < len(*newCurrentTeam.Players) {
-		//Set the CurrentPlayer
-		game.CurrentPlayer = &(*(*game.Teams)[newCurrentTeamIndex].Players)[newCurrentPlayerIndex]
+	//Get CurrentTeam NewPlayerIndex
+	newNextPlayerIndex := ((*game.Teams)[newNextTeamIndex].CurrentPlayerIndex + 1) % len(*newNextTeam.Players)
 
-		//Set the NextPlayer
-		game.NextPlayer = &(*(*game.Teams)[newNextTeamIndex].Players)[newNextPlayerIndex]
+	//Get NextTeam NewPlayerIndex
+	newCurrentPlayerIndex := ((*game.Teams)[newCurrentTeamIndex].CurrentPlayerIndex) % len(*newCurrentTeam.Players)
 
-		//Set the NewTeam
-		game.CurrentTeamIndex = newCurrentTeamIndex
-		(*game.Teams)[newNextTeamIndex].CurrentPlayerIndex = newNextPlayerIndex
+	//Set the CurrentPlayer
+	game.CurrentPlayer = &(*(*game.Teams)[newCurrentTeamIndex].Players)[newCurrentPlayerIndex]
 
-	} else if newNextPlayerIndex < len(*newCurrentTeam.Players) {
-		game.CurrentPlayer = &(*(*game.Teams)[newCurrentTeamIndex].Players)[newCurrentPlayerIndex]
-		game.CurrentTeamIndex = newCurrentTeamIndex
-		game.NextPlayer = nil
-	} else {
-		// If you are here then there are pending phrases and all players have taken there chance once
+	//Set the NextPlayer
+	game.NextPlayer = &(*(*game.Teams)[newNextTeamIndex].Players)[newNextPlayerIndex]
 
-		// Set the Team.CurrentPlayerIndex to 0 so that pending words are completed
-		(*game.Teams)[newNextTeamIndex].CurrentPlayerIndex = 0
-		(*game.Teams)[newCurrentTeamIndex].CurrentPlayerIndex = 0
+	//Set the NewTeam
+	game.CurrentTeamIndex = newCurrentTeamIndex
 
-		//Call the function again
-		ChangeNextPlayerAndTeam(game)
-	}
+	//Set the CurrentPlayerIndex for respective teams
+	(*game.Teams)[newNextTeamIndex].CurrentPlayerIndex = newNextPlayerIndex
+	(*game.Teams)[newCurrentTeamIndex].CurrentPlayerIndex = newCurrentPlayerIndex
 
 	return game
 }
