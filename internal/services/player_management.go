@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"gamesnight/internal/database"
 	"gamesnight/internal/models"
 )
@@ -25,7 +24,7 @@ func (ps *PlayerService) CreateNewPlayer() (*models.Player, error) {
 	// can add a validation for duplicate playerId
 
 	if err != nil {
-		fmt.Printf("Error in creating player key %s", err)
+		// fmt.Printf("Error in creating player key %s", err)
 		return nil, err
 	}
 

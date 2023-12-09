@@ -29,7 +29,7 @@ func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) error 
 	// Update the choice based on the request
 	if choice == "guessed" {
 		currentPhrases.Status[models.CurrentIndex] = models.Guessed
-		(*game.Teams)[game.CurrentTeamIndex].Score+=10
+		(*game.Teams)[game.CurrentTeamIndex].Score += 10
 		database.SetGame(&game)
 	}
 

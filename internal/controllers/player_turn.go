@@ -79,6 +79,7 @@ func EndTurnController(c *gin.Context) {
 	}
 
 	player := p.(*models.Player)
+	//Logging code should be moved to middleware
 	if *player.Id != *game.CurrentPlayer.Id {
 		logger.GetLogger().Logger.Error(
 			"player ending turn should be current player",
