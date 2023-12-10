@@ -21,6 +21,11 @@ func getNextTeamIndex(currentIndex int) int {
 	return currentIndex ^ 1
 }
 
+
+func GetCurrentTime() time.Time {
+	return time.Now()
+}
+
 func addPlayerToGame(gameMeta *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
 
 	if !contains(*gameMeta.Players, player) {

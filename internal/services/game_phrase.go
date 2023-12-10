@@ -29,8 +29,6 @@ func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.Phrase
 }
 
 func (gs *GameService) AddPhrasesToPlayer(playerId string, phraseList *models.PhraseList) error {
-	// Add validation for playerId exists or not in the current game
-	// Add phrases to the player
 	err := database.SetPlayerPhrases(playerId, phraseList)
 	if err != nil {
 		return err
@@ -40,7 +38,6 @@ func (gs *GameService) AddPhrasesToPlayer(playerId string, phraseList *models.Ph
 }
 
 func (gs *GameService) GetGamePhrases(gameId string) (*models.PhraseList, error) {
-	// Fetch phrases for the game
 	phrases, err := database.GetGamePhrases(gameId)
 	if err != nil {
 		return nil, err

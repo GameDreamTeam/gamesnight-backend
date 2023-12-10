@@ -9,11 +9,18 @@ import (
 )
 
 func AddPhraseController(c *gin.Context) {
-	//Check of Player exist
+	//Check if Player exist
 	player, err := getPlayerFromContext(c)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
+	}
+
+	//Check if player exist in the game
+	gameId := c.Param("gameId")
+	err=services.GetPlayerService().PlayerExistInGame(gameId,*player)
+	if err!=nil{
+		SendResponse(c, http.StatusBadRequest, nil, err)
 	}
 
 	var phraseList models.PhraseList
@@ -31,7 +38,6 @@ func AddPhraseController(c *gin.Context) {
 		return
 	}
 
-	gameId := c.Param("gameId")
 	err = services.GetGameService().AddPhrasesToGame(gameId, &phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)

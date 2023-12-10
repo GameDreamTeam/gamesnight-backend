@@ -1,10 +1,8 @@
 package services
 
 import (
-	"fmt"
 	"gamesnight/internal/database"
 	"gamesnight/internal/models"
-	"time"
 )
 
 type GameService struct{}
@@ -23,28 +21,19 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
 	if err != nil {
-		fmt.Printf("Error in creating new game %s", err)
 		return nil, err
 	}
 
 	existingGame, _ := database.GetGame(gameId)
-	// if err != nil {
-	// 	fmt.Printf("Error checking for existing game: %s", err)
-	// 	return nil, err
-	// }
-
+	
 	if existingGame != nil {
-		fmt.Printf("Game with gameId %s already exists", gameId)
-		// Handle this scenario, possibly by generating a new gameId or returning an error
-		//Add a maximum recursion depth
 		return gs.CreateNewGame(playerId)
 	}
 
 	gameMeta := models.GameMeta{
 		GameId:  gameId,
 		AdminId: playerId,
-		//update to get Current time function from utils
-		CreatedAt: time.Now(),
+		CreatedAt: GetCurrentTime(),
 		Players:   &[]models.Player{},
 	}
 
@@ -61,8 +50,6 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 }
 
 func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.GameMeta, error) {
-	// Check the state of game here
-
 	// This entire portion has to acquire a lock when having high concurrency
 	gameMeta, err := database.GetGameMeta(gameId)
 	if err != nil {
@@ -76,13 +63,11 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 
 	err = database.SetGameMeta(gameMeta)
 	if err != nil {
-		fmt.Println("Not able to set game")
 		return nil, err
 	}
 
 	err = database.SetPlayerDetails(*player)
 	if err != nil {
-		fmt.Println("Not able to set player")
 		return nil, err
 	}
 

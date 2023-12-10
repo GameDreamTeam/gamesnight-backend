@@ -26,7 +26,6 @@ func SetGame(game *models.Game) error {
 }
 
 func GetGame(gameId string) (*models.Game, error) {
-
 	key := GetGameKey(gameId)
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
@@ -59,7 +58,6 @@ func GetPlayerDetails(playerId string) (*models.Player, error) {
 }
 
 func SetPlayerDetails(player models.Player) error {
-	// Convert player object to JSON
 	key := *player.Id
 	jsonPlayer, err := json.Marshal(player)
 	if err != nil {
@@ -74,7 +72,6 @@ func SetPlayerDetails(player models.Player) error {
 }
 
 func SetGameMeta(gameMeta *models.GameMeta) error {
-
 	key := GetGameMetaKey(gameMeta.GameId)
 
 	jsonGame, err := json.Marshal(gameMeta)
@@ -90,8 +87,8 @@ func SetGameMeta(gameMeta *models.GameMeta) error {
 }
 
 func GetGameMeta(gameId string) (*models.GameMeta, error) {
-
 	key := GetGameMetaKey(gameId)
+
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
 		return nil, errors.Wrap(err, "Getting Game Meta failed")
@@ -131,14 +128,12 @@ func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
 
 	*existingPhrases.List = append(*existingPhrases.List, *newPhrases.List...)
 
-	// Marshal the updated phrases list
 	updatedPhrasesJSON, err := json.Marshal(existingPhrases)
 	if err != nil {
 		fmt.Println("Error marshaling updated phrases:", err)
 		return err
 	}
 
-	// Save the updated list back to Redis
 	err = rc.Client.Set(key, updatedPhrasesJSON, 24*time.Hour).Err()
 	if err != nil {
 		fmt.Println("Error setting updated phrases in Redis:", err)
@@ -214,13 +209,11 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
 	key := GetCurrentPhraseMapKey(gameId)
 
-	// Serialize the PhraseStatusMap to JSON
 	jsonMap, err := json.Marshal(phraseStatusMap)
 	if err != nil {
 		return errors.Wrap(err, "error marshaling PhraseStatusMap")
 	}
 
-	// Store in Redis
 	err = rc.Client.Set(key, jsonMap, 24*time.Hour).Err()
 	if err != nil {
 		return errors.Wrap(err, "failed to set PhraseStatusMap in Redis")
@@ -231,8 +224,6 @@ func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) 
 
 func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
 	key := GetCurrentPhraseMapKey(gameId)
-
-	// Fetch the serialized PhraseStatusMap from Redis
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
 		if err == redis.Nil {

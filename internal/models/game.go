@@ -19,7 +19,6 @@ type GameMeta struct {
 	CreatedAt time.Time `json:"cAt"`
 }
 
-// Maybe teams should be a map of teams and not a slice
 type Game struct {
 	GameId           string    `json:"gameId"`
 	GameState        GameState `json:"state"`

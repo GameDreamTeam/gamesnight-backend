@@ -17,13 +17,13 @@ func NewGameController(c *gin.Context) {
 	}
 
 	//Create new game
-	game, err := services.GetGameService().CreateNewGame(*player.Id)
+	gameMeta, err := services.GetGameService().CreateNewGame(*player.Id)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	SendResponse(c, http.StatusOK, game, nil)
+	SendResponse(c, http.StatusOK, gameMeta, nil)
 }
 
 func JoinGameController(c *gin.Context) {
@@ -90,7 +90,6 @@ func StartGameController(c *gin.Context) {
 		return
 	}
 
-	// Write PhraseMap to Redis
 	err = services.GetGameService().SetCurrentPhraseMap(gameId, PhraseMap)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)

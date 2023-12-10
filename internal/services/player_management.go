@@ -91,3 +91,15 @@ func (ps *PlayerService) NextPlayerAndTeam(gameId string) (*models.Game, error) 
 
 	return game, nil
 }
+
+func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player)(error){
+	gameMeta, err := database.GetGameMeta(gameId)
+	if err!=nil{
+		return err
+	}
+	
+	if !contains(*gameMeta.Players,&player){
+		return errors.New("you must join the game to submit the game")
+	}
+	return nil
+}
