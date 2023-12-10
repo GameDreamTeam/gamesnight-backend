@@ -25,14 +25,14 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 	}
 
 	existingGame, _ := database.GetGame(gameId)
-	
+
 	if existingGame != nil {
 		return gs.CreateNewGame(playerId)
 	}
 
 	gameMeta := models.GameMeta{
-		GameId:  gameId,
-		AdminId: playerId,
+		GameId:    gameId,
+		AdminId:   playerId,
 		CreatedAt: GetCurrentTime(),
 		Players:   &[]models.Player{},
 	}

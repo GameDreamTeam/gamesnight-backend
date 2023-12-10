@@ -1,8 +1,9 @@
 package models
 
 type Player struct {
-	Name *string `json:"name"`
-	Id   *string `json:"id"`
+	Name             *string `json:"name"`
+	Id               *string `json:"id"`
+	PhrasesSubmitted bool    `json:"wordsSubmitted"`
 }
 
 type PlayerName struct {
@@ -10,6 +11,6 @@ type PlayerName struct {
 }
 
 type PlayerWords struct {
-	Id         *string `json:"id"`
-	PhraseList *PhraseList
+	Id         *string     `json:"id"`
+	PhraseList *PhraseList `json:"phraseList"`
 }

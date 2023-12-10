@@ -42,6 +42,7 @@ func JoinGameController(c *gin.Context) {
 	}
 
 	player.Name = &username.Name
+	player.PhrasesSubmitted = false
 
 	gameId := c.Param("gameId")
 	game, err := services.GetGameService().JoinGame(gameId, player)
@@ -70,6 +71,7 @@ func StartGameController(c *gin.Context) {
 	err = isAdminPlayer(*gamemeta, player)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return 
 	}
 
 	game, err := services.GetGameService().StartGame(gamemeta.GameId)

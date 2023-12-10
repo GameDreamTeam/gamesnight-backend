@@ -21,7 +21,6 @@ func getNextTeamIndex(currentIndex int) int {
 	return currentIndex ^ 1
 }
 
-
 func GetCurrentTime() time.Time {
 	return time.Now()
 }

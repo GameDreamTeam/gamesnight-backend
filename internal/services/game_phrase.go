@@ -28,8 +28,14 @@ func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.Phrase
 	return nil
 }
 
-func (gs *GameService) AddPhrasesToPlayer(playerId string, phraseList *models.PhraseList) error {
-	err := database.SetPlayerPhrases(playerId, phraseList)
+func (gs *GameService) AddPhrasesToPlayer(player models.Player, phraseList *models.PhraseList) error {
+	err := database.SetPlayerPhrases(*player.Id, phraseList)
+	if err != nil {
+		return err
+	}
+
+	player.PhrasesSubmitted = true
+	err = database.SetPlayerDetails(player)
 	if err != nil {
 		return err
 	}

@@ -92,14 +92,25 @@ func (ps *PlayerService) NextPlayerAndTeam(gameId string) (*models.Game, error) 
 	return game, nil
 }
 
-func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player)(error){
+func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player) error {
 	gameMeta, err := database.GetGameMeta(gameId)
-	if err!=nil{
+	if err != nil {
 		return err
 	}
-	
-	if !contains(*gameMeta.Players,&player){
+
+	if !contains(*gameMeta.Players, &player) {
 		return errors.New("you must join the game to submit the game")
+	}
+	return nil
+}
+
+func (ps *PlayerService) PlayerAlreadyAddedPhrases(player models.Player) error {
+	redisPlayer, err := database.GetPlayerDetails(*player.Id)
+	if err != nil {
+		return err
+	}
+	if redisPlayer.PhrasesSubmitted {
+		return errors.New("you have already added phrases")
 	}
 	return nil
 }

@@ -17,7 +17,7 @@ func SetupRouter(r *gin.Engine) {
 		{
 			game.GET("/create", controllers.NewGameController)
 			game.POST("/:gameId/join", controllers.JoinGameController)
-			
+
 			//Get APIs used for testing
 			game.GET("/:gameId/meta", controllers.GetGameMetaController)
 			game.GET("/:gameId/details", controllers.GetGameController)

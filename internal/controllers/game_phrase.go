@@ -18,13 +18,21 @@ func AddPhraseController(c *gin.Context) {
 
 	//Check if player exist in the game
 	gameId := c.Param("gameId")
-	err=services.GetPlayerService().PlayerExistInGame(gameId,*player)
-	if err!=nil{
+	err = services.GetPlayerService().PlayerExistInGame(gameId, *player)
+	if err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)
+		return
 	}
 
-	var phraseList models.PhraseList
+	//Check if player has already submitted phrases
+	err = services.GetPlayerService().PlayerAlreadyAddedPhrases(*player)
+	if err != nil {
+		SendResponse(c, http.StatusBadRequest, nil, err)
+		return
+	}
+
 	//Take phrases as an input from user
+	var phraseList models.PhraseList
 	err = BindJSONAndHandleError(c, &phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)
@@ -44,8 +52,7 @@ func AddPhraseController(c *gin.Context) {
 		return
 	}
 
-	playerId := *player.Id
-	err = services.GetGameService().AddPhrasesToPlayer(playerId, &phraseList)
+	err = services.GetGameService().AddPhrasesToPlayer(*player, &phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
