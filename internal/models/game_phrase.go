@@ -24,7 +24,7 @@ type PhraseStatusMap struct {
 	Status  []PhraseStatus `json:"statusList"`
 }
 
-type PlayerGuessWithWord struct {
+type PlayerGuess struct {
 	PlayerChoice string `json:"playerChoice"`
 }
 

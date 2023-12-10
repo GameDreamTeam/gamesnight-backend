@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
@@ -10,40 +9,43 @@ import (
 )
 
 func AddPhraseController(c *gin.Context) {
-	p, exists := c.Get("player")
-	if !exists {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("internal server error"))
-		return
-	}
-
-	var phraseList models.PhraseList
-	player := p.(*models.Player)
-	playerId := *player.Id
-	gameId := c.Param("gameId")
-
-	if err := c.BindJSON(&phraseList); err != nil {
-		SendResponse(c, http.StatusBadRequest, nil, err)
-		return
-	}
-
-	if len(*phraseList.List) != 4 {
-		SendResponse(c, http.StatusBadRequest, nil, errors.New("total length of phrases must be 4"))
-		return
-	}
-
-	err := services.GetGameService().AddPhrasesToGame(gameId, &phraseList)
+	//Check of Player exist
+	player, err := getPlayerFromContext(c)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
+	var phraseList models.PhraseList
+	//Take phrases as an input from user
+	err = BindJSONAndHandleError(c, &phraseList)
+	if err != nil {
+		SendResponse(c, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	//Check total number of phrases submitted
+	err = CheckPhraseListLength(phraseList)
+	if err != nil {
+		SendResponse(c, http.StatusBadRequest, nil, err)
+		return
+	}
+
+	gameId := c.Param("gameId")
+	err = services.GetGameService().AddPhrasesToGame(gameId, &phraseList)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	playerId := *player.Id
 	err = services.GetGameService().AddPhrasesToPlayer(playerId, &phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	SendResponse(c, http.StatusOK,phraseList,nil)
+	SendResponse(c, http.StatusOK, phraseList, nil)
 }
 
 func GetGamePhrasesController(c *gin.Context) {

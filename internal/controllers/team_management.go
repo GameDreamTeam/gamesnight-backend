@@ -1,23 +1,21 @@
 package controllers
 
 import (
-	"errors"
-	"gamesnight/internal/logger"
-	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func MakeTeamsController(c *gin.Context) {
-	p, exists := c.Get("player")
-	if !exists {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player does not exist"))
+	//Check if player exist
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
+	//Check if game exist
 	gameId := c.Param("gameId")
 	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
 	if err != nil {
@@ -25,17 +23,10 @@ func MakeTeamsController(c *gin.Context) {
 		return
 	}
 
-	player := p.(*models.Player)
-
-	if *player.Id != gamemeta.AdminId {
-		logger.GetLogger().Logger.Error(
-			"player starting/making game/team should be admin",
-			zap.Any("gamemeta", gamemeta),
-			zap.Any("player", player),
-		)
-		SendResponse(c, http.StatusInternalServerError, nil,
-			errors.New("player starting game should be admin"))
-		return
+	//Check if make teams is called by admin
+	err = isAdminPlayer(*gamemeta, player)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 	}
 
 	game, err := services.GetGameService().MakeTeams(gamemeta)

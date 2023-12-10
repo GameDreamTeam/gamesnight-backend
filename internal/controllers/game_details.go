@@ -19,8 +19,6 @@ func GetGameMetaController(c *gin.Context) {
 }
 
 func GetGameController(c *gin.Context) {
-	// Not checking authentication here
-	//Do we care if random user fetches game details of someone else's game?
 	gameId := c.Param("gameId")
 	game, err := services.GetGameService().GetGame(gameId)
 

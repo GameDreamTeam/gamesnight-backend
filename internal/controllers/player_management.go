@@ -2,22 +2,19 @@ package controllers
 
 import (
 	"errors"
-	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func GetPlayerDetailsController(c *gin.Context) {
-	p, exists := c.Get("player")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-	player := p.(*models.Player)
 
 	playerInfo, err := services.GetPlayerService().GetPlayerDetails(*player.Id)
 	if err != nil {
@@ -60,20 +57,13 @@ func RemovePlayerController(c *gin.Context) {
 	}
 	player := p.(*models.Player)
 
-	if *player.Id != gameMeta.AdminId {
-		logger.GetLogger().Logger.Error(
-			"Only admin should remove players",
-			zap.Any("gamemeta", gameMeta),
-			zap.Any("player", player),
-		)
-		SendResponse(c, http.StatusInternalServerError, nil,
-			errors.New("only admin should remove players"))
-		return
+	err = isAdminPlayer(*gameMeta, player)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 	}
 
 	// Validate that the player to be removed is not admin
 	if adminId != playerId {
-
 		// Remove the player from the game meta and write to redis
 		updatedGameMeta, err := services.GetPlayerService().RemovePlayer(gameMeta, playerId)
 		if err != nil {

@@ -12,9 +12,9 @@ import (
 )
 
 func StartTurnController(c *gin.Context) {
-	p, exists := c.Get("player")
-	if !exists {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -26,7 +26,6 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	player := p.(*models.Player)
 	models.CurrentIndex = 0
 
 	if *player.Id != *game.CurrentPlayer.Id {
@@ -64,9 +63,9 @@ func StartTurnController(c *gin.Context) {
 }
 
 func EndTurnController(c *gin.Context) {
-	p, exists := c.Get("player")
-	if !exists {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player does not exist"))
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -78,7 +77,6 @@ func EndTurnController(c *gin.Context) {
 		return
 	}
 
-	player := p.(*models.Player)
 	//Logging code should be moved to middleware
 	if *player.Id != *game.CurrentPlayer.Id {
 		logger.GetLogger().Logger.Error(
@@ -108,9 +106,9 @@ func EndTurnController(c *gin.Context) {
 
 func PlayerGuessController(c *gin.Context) {
 	// can remove validations here to make API lightweight
-	p, exists := c.Get("player")
-	if !exists {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("player does not exist"))
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -122,8 +120,6 @@ func PlayerGuessController(c *gin.Context) {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
-
-	player := p.(*models.Player)
 
 	if *player.Id != *game.CurrentPlayer.Id {
 		logger.GetLogger().Logger.Error(
@@ -137,9 +133,10 @@ func PlayerGuessController(c *gin.Context) {
 	}
 
 	// Parse request body
-	var guessRequest models.PlayerGuessWithWord
-	if err := c.BindJSON(&guessRequest); err != nil {
-		SendResponse(c, http.StatusBadRequest, nil, err)
+	var guessRequest models.PlayerGuess
+	err = BindJSONAndHandleError(c, &guessRequest)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 

@@ -6,7 +6,7 @@ type Player struct {
 }
 
 type PlayerName struct {
-	Username string `json:"username"`
+	Name string `json:"name"`
 }
 
 type PlayerWords struct {

@@ -77,11 +77,11 @@ func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.Phra
 			newStatus = append(newStatus, status)
 		}
 	}
-	newMap:=models.PhraseStatusMap{
+	newMap := models.PhraseStatusMap{
 		Phrases: newPhrases,
 		Status:  newStatus,
 	}
-	database.SetCurrentPhraseMap(gameId,newMap)
+	database.SetCurrentPhraseMap(gameId, newMap)
 
 	return newMap
 }
