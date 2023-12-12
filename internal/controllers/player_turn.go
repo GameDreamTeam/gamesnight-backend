@@ -6,6 +6,7 @@ import (
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -39,6 +40,8 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
+	models.TurnStartTime = services.GetCurrentTime()
+
 	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
@@ -55,6 +58,7 @@ func StartTurnController(c *gin.Context) {
 	responseData := models.ResponseData{
 		PhraseMap:     &currentPhraseMap,
 		CurrentPhrase: PhraseToBeGuessed,
+		TurnStartedAt: models.TurnStartTime,
 	}
 
 	// services.GetGameService().StartTurnTimer(gameId)
@@ -101,6 +105,8 @@ func EndTurnController(c *gin.Context) {
 	}
 
 	updatedPhraseMap := services.GetGameService().RemoveGuessedPhrases(gameId, currentPhraseMap)
+
+	models.TurnStartTime = time.Time{}
 	SendResponse(c, http.StatusOK, updatedPhraseMap, nil)
 }
 

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type PhraseStatus int
 
 const (
@@ -8,7 +10,8 @@ const (
 )
 
 var (
-	CurrentIndex int = 0
+	CurrentIndex  int = 0
+	TurnStartTime time.Time
 )
 
 type Phrase struct {
@@ -31,4 +34,5 @@ type PlayerGuess struct {
 type ResponseData struct {
 	PhraseMap     *PhraseStatusMap `json:"phraseListMap"`
 	CurrentPhrase string           `json:"currentPhrase"`
+	TurnStartedAt time.Time        `json:"turnStartedAt"`
 }
