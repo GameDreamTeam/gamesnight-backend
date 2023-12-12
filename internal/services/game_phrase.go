@@ -3,6 +3,7 @@ package services
 import (
 	"gamesnight/internal/database"
 	"gamesnight/internal/models"
+	"math/rand"
 )
 
 func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
@@ -80,6 +81,9 @@ func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.Phra
 			newStatus = append(newStatus, status)
 		}
 	}
+
+	rand.Shuffle(len(newPhrases), func(i, j int) { newPhrases[i], newPhrases[j] = newPhrases[j], newPhrases[i] })
+
 	newMap := models.PhraseStatusMap{
 		Phrases: newPhrases,
 		Status:  newStatus,
