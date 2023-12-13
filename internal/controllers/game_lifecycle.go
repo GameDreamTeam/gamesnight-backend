@@ -71,7 +71,7 @@ func StartGameController(c *gin.Context) {
 	err = isAdminPlayer(*gamemeta, player)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return 
+		return
 	}
 
 	game, err := services.GetGameService().StartGame(gamemeta.GameId)

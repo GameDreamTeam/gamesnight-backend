@@ -93,14 +93,14 @@ func GetGameMeta(gameId string) (*models.GameMeta, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Getting Game Meta failed")
 	}
-
-	var game models.GameMeta
-	err = json.Unmarshal([]byte(result), &game)
+	// var name should be gameMeta as game meta is being returned
+	var gameMeta models.GameMeta
+	err = json.Unmarshal([]byte(result), &gameMeta)
 	if err != nil {
 		return nil, errors.Wrap(err, "Converting game meta json to game object failed")
 	}
 
-	return &game, nil
+	return &gameMeta, nil
 }
 
 func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
