@@ -92,6 +92,7 @@ func (ps *PlayerService) NextPlayerAndTeam(gameId string) (*models.Game, error) 
 	return game, nil
 }
 
+// Game should not be player's responsibility. So this code does not belong here
 func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player) error {
 	gameMeta, err := database.GetGameMeta(gameId)
 	if err != nil {
@@ -99,12 +100,13 @@ func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player) 
 	}
 
 	if !contains(*gameMeta.Players, &player) {
-		return errors.New("you must join the game to submit the game")
+		return errors.New("you must join the game to submit the phrase")
 	}
 	return nil
 }
 
 func (ps *PlayerService) PlayerAlreadyAddedPhrases(player models.Player) error {
+	//Change the name of this variable
 	redisPlayer, err := database.GetPlayerDetails(*player.Id)
 	if err != nil {
 		return err

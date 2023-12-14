@@ -16,6 +16,7 @@ func GetGameMetaKey(gameId string) string {
 	return fmt.Sprintf("gamemeta:%s", gameId)
 }
 
+// Follow one convention throughout
 func GetGamePhraseKey(gameId string) string {
 	return fmt.Sprintf("game-phrase:%s", gameId)
 }

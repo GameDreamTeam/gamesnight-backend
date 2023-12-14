@@ -23,18 +23,24 @@ func StartTurnController(c *gin.Context) {
 	game, err := services.GetGameService().GetGame(gameId)
 	// Throw different error if game is not playing
 	if err != nil || game.GameState != models.Playing {
+		// If game state is not playing then we throw different error
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
+	// What is this line of code doing here? 
 	models.CurrentIndex = 0
 
+	// I think this could also be a middleware
+	// Also note middleware is also like abstracting away some logic into a function 
+	// It makes it clear what requirements are needed
 	if *player.Id != *game.CurrentPlayer.Id {
 		logger.GetLogger().Logger.Error(
 			"player starting turn should be current player",
 			zap.Any("game", game),
 			zap.Any("player", player),
 		)
+		// This would be a 403 error
 		SendResponse(c, http.StatusInternalServerError, nil,
 			errors.New("player starting turn should be current player"))
 		return

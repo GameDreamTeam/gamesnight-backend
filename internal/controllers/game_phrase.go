@@ -9,22 +9,23 @@ import (
 )
 
 func AddPhraseController(c *gin.Context) {
-	//Check if Player exist
 	player, err := getPlayerFromContext(c)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	//Check if player exist in the game
 	gameId := c.Param("gameId")
+	// Game service should check if player exists in game or not
 	err = services.GetPlayerService().PlayerExistInGame(gameId, *player)
 	if err != nil {
+		// This should be player not found in game (404)
 		SendResponse(c, http.StatusBadRequest, nil, err)
 		return
 	}
 
 	//Check if player has already submitted phrases
+	// Update information at both place (game and player) 
 	err = services.GetPlayerService().PlayerAlreadyAddedPhrases(*player)
 	if err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)

@@ -58,6 +58,7 @@ func GetPlayerDetails(playerId string) (*models.Player, error) {
 }
 
 func SetPlayerDetails(player models.Player) error {
+	// Use player key for redis (keys.go)
 	key := *player.Id
 	jsonPlayer, err := json.Marshal(player)
 	if err != nil {
@@ -222,6 +223,7 @@ func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) 
 	return nil
 }
 
+// This is business logic creeping into database access layer
 func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
 	key := GetCurrentPhraseMapKey(gameId)
 	result, err := rc.Client.Get(key).Result()

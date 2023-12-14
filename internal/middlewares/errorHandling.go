@@ -18,7 +18,6 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 				} else {
 					err = fmt.Errorf("%v", r)
 				}
-				fmt.Println("I am in error")
 				controllers.SendResponse(c, http.StatusInternalServerError, nil, err)
 				c.Abort()
 			}

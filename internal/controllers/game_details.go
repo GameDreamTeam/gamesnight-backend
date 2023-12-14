@@ -11,6 +11,7 @@ func GetGameMetaController(c *gin.Context) {
 	gameId := c.Param("gameId")
 	gameMeta, err := services.GetGameService().GetGameMeta(gameId)
 
+	// If we don't find a game meta with a gameId then we should return 404
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return

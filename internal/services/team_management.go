@@ -13,6 +13,8 @@ func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error
 	if err != nil {
 		return nil, err
 	}
+	// If we have fetched the game then we should check the status of game. 
+	//If it is already teams divided or further ahead then we should not allow this
 
 	// Check if atleast 2 players exist in the game
 	// Future we have to make number of teams customizable

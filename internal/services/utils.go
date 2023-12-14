@@ -31,6 +31,7 @@ func addPlayerToGame(gameMeta *models.GameMeta, player *models.Player) (*models.
 		*gameMeta.Players = append(*gameMeta.Players, *player)
 	} else {
 		// Return custom error here (404)
+		// If player already exists then it is not 404 it is 400 or something
 		return nil, errors.New("player already exists in this game")
 	}
 
@@ -104,7 +105,7 @@ func ChangeNextPlayerAndTeam(game *models.Game) *models.Game {
 
 func StartingCurrentAndNextPlayer(game *models.Game) *models.Game {
 	game.GameState = models.Playing
-	//Get CurrentTeam Index
+	//Get CurrentTeam Index ()
 	currentTeamIndex := game.CurrentTeamIndex
 
 	//Get NextTeam Index

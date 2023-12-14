@@ -37,7 +37,7 @@ func JoinGameController(c *gin.Context) {
 	var username models.PlayerName
 	err = BindJSONAndHandleError(c, &username)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusBadRequest, nil, err)
 		return
 	}
 
@@ -56,6 +56,8 @@ func JoinGameController(c *gin.Context) {
 
 func StartGameController(c *gin.Context) {
 	gameId := c.Param("gameId")
+	// Rename this to check if game exists or not
+	// We need to always check if game exists or not. This can be a middleware infact
 	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
