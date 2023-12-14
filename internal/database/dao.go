@@ -26,7 +26,6 @@ func SetGame(game *models.Game) error {
 }
 
 func GetGame(gameId string) (*models.Game, error) {
-
 	key := GetGameKey(gameId)
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
@@ -42,8 +41,37 @@ func GetGame(gameId string) (*models.Game, error) {
 	return &game, nil
 }
 
-func SetGameMeta(gameMeta *models.GameMeta) error {
+func GetPlayerDetails(playerId string) (*models.Player, error) {
+	key := playerId
+	result, err := rc.Client.Get(key).Result()
+	if err != nil {
+		return nil, errors.Wrap(err, "Getting Player failed")
+	}
 
+	var player models.Player
+	err = json.Unmarshal([]byte(result), &player)
+	if err != nil {
+		return nil, errors.Wrap(err, "Converting player json to game object failed")
+	}
+
+	return &player, nil
+}
+
+func SetPlayerDetails(player models.Player) error {
+	key := *player.Id
+	jsonPlayer, err := json.Marshal(player)
+	if err != nil {
+		return errors.Wrap(err, "Player json conversion failed while setting game")
+	}
+
+	err = rc.Client.Set(key, jsonPlayer, 24*time.Hour).Err()
+	if err != nil {
+		return errors.Wrap(err, "Failed to set Player in Redis")
+	}
+	return nil
+}
+
+func SetGameMeta(gameMeta *models.GameMeta) error {
 	key := GetGameMetaKey(gameMeta.GameId)
 
 	jsonGame, err := json.Marshal(gameMeta)
@@ -59,25 +87,27 @@ func SetGameMeta(gameMeta *models.GameMeta) error {
 }
 
 func GetGameMeta(gameId string) (*models.GameMeta, error) {
-
 	key := GetGameMetaKey(gameId)
+
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
 		return nil, errors.Wrap(err, "Getting Game Meta failed")
 	}
-
-	var game models.GameMeta
-	err = json.Unmarshal([]byte(result), &game)
+	// var name should be gameMeta as game meta is being returned
+	var gameMeta models.GameMeta
+	err = json.Unmarshal([]byte(result), &gameMeta)
 	if err != nil {
 		return nil, errors.Wrap(err, "Converting game meta json to game object failed")
 	}
 
-	return &game, nil
+	return &gameMeta, nil
 }
 
 func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
 	key := GetGamePhraseKey(gameId)
 
+	// At the very least check if same phrase is not entered twice, maybe using frontend?
+	// Can add checks to whether submitted phrases exist already ( Find a way to do in realtime or upon submit )
 	// Retrieve existing phrases
 	existingPhrasesJSON, err := rc.Client.Get(key).Result()
 	if err != nil && err != redis.Nil {
@@ -98,14 +128,12 @@ func SetGamePhrases(gameId string, newPhrases *models.PhraseList) error {
 
 	*existingPhrases.List = append(*existingPhrases.List, *newPhrases.List...)
 
-	// Marshal the updated phrases list
 	updatedPhrasesJSON, err := json.Marshal(existingPhrases)
 	if err != nil {
 		fmt.Println("Error marshaling updated phrases:", err)
 		return err
 	}
 
-	// Save the updated list back to Redis
 	err = rc.Client.Set(key, updatedPhrasesJSON, 24*time.Hour).Err()
 	if err != nil {
 		fmt.Println("Error setting updated phrases in Redis:", err)
@@ -162,7 +190,7 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 	if err != nil {
 		if err == redis.Nil {
 			fmt.Println("No phrases found for player in game", playerId)
-			return nil, nil
+			return nil, err
 		}
 		fmt.Println("Error getting player game phrases from Redis:", err)
 		return nil, err
@@ -178,18 +206,38 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 	return &phrases, nil
 }
 
-func GetGameKey(gameId string) string {
-	return fmt.Sprintf("game:%s", gameId)
+func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
+	key := GetCurrentPhraseMapKey(gameId)
+
+	jsonMap, err := json.Marshal(phraseStatusMap)
+	if err != nil {
+		return errors.Wrap(err, "error marshaling PhraseStatusMap")
+	}
+
+	err = rc.Client.Set(key, jsonMap, 24*time.Hour).Err()
+	if err != nil {
+		return errors.Wrap(err, "failed to set PhraseStatusMap in Redis")
+	}
+
+	return nil
 }
 
-func GetGameMetaKey(gameId string) string {
-	return fmt.Sprintf("gamemeta:%s", gameId)
-}
+func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
+	key := GetCurrentPhraseMapKey(gameId)
+	result, err := rc.Client.Get(key).Result()
+	if err != nil {
+		if err == redis.Nil {
+			// No PhraseStatusMap found for the game, return an empty map
+			return models.PhraseStatusMap{}, nil
+		}
+		return models.PhraseStatusMap{}, errors.Wrap(err, "getting current phrase map failed")
+	}
 
-func GetGamePhraseKey(gameId string) string {
-	return fmt.Sprintf("game-phrase:%s", gameId)
-}
+	var phraseStatusMap models.PhraseStatusMap
+	err = json.Unmarshal([]byte(result), &phraseStatusMap)
+	if err != nil {
+		return models.PhraseStatusMap{}, errors.Wrap(err, "error unmarshaling PhraseStatusMap")
+	}
 
-func GetPlayerPhraseKey(playerId string) string {
-	return fmt.Sprintf("player-phrase:%s", playerId)
+	return phraseStatusMap, nil
 }
