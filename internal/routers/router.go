@@ -12,34 +12,33 @@ func SetupRouter(r *gin.Engine) {
 
 	api := r.Group("/v0")
 	{
-		// Game routes
-		game := api.Group("/game")
+		game := api.Group("/games")
 		{
-			game.GET("/create", controllers.NewGameController)
+			game.POST("/", controllers.NewGameController)
 			game.POST("/:gameId/join", controllers.JoinGameController)
 
-			//Get APIs used for testing
 			game.GET("/:gameId/meta", controllers.GetGameMetaController)
 			game.GET("/:gameId/details", controllers.GetGameController)
 			game.GET("/:gameId/phrases", controllers.GetGamePhrasesController)
 
-			game.POST("/:gameId/add-phrase", controllers.AddPhraseController)
-			game.POST("/:gameId/make-teams", controllers.MakeTeamsController)
-			game.GET("/:gameId/start", controllers.StartGameController)
-			game.POST("/:gameId/start-turn", controllers.StartTurnController)
-			game.POST("/:gameId/:playerId/remove", controllers.RemovePlayerController)
-			game.POST("/:gameId/choice", controllers.PlayerGuessController)
-			game.POST("/:gameId/end-turn", controllers.EndTurnController)
+			game.POST("/:gameId/phrases", controllers.AddPhraseController)
+			game.POST("/:gameId/teams", controllers.MakeTeamsController)
+			game.POST("/:gameId/start", controllers.StartGameController)
+			game.POST("/:gameId/turns/start", controllers.StartTurnController)
+
+			game.DELETE("/:gameId/players/:playerId", controllers.RemovePlayerController)
+
+			game.POST("/:gameId/choices", controllers.PlayerGuessController)
+			game.POST("/:gameId/turns/end", controllers.EndTurnController)
 		}
 
-		// Player routes
-		player := api.Group("/player")
+		player := api.Group("/players")
 		{
+			//Maybe merge these 2 apis
 			player.GET("/:playerId/phrases", controllers.GetPlayerPhrasesController)
-			player.GET("/details", controllers.GetPlayerDetailsController)
+			player.GET("/:playerId", controllers.GetPlayerDetailsController)
 		}
 
-		// Feedback route
 		api.POST("/feedback", controllers.SubmitFeedbackController)
 	}
 }

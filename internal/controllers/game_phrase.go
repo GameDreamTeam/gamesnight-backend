@@ -25,7 +25,7 @@ func AddPhraseController(c *gin.Context) {
 	}
 
 	//Check if player has already submitted phrases
-	// Update information at both place (game and player) 
+	// Update information at both place (game and player)
 	err = services.GetPlayerService().PlayerAlreadyAddedPhrases(*player)
 	if err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)

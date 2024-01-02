@@ -28,11 +28,11 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	// What is this line of code doing here? 
+	// What is this line of code doing here?
 	models.CurrentIndex = 0
 
 	// I think this could also be a middleware
-	// Also note middleware is also like abstracting away some logic into a function 
+	// Also note middleware is also like abstracting away some logic into a function
 	// It makes it clear what requirements are needed
 	if *player.Id != *game.CurrentPlayer.Id {
 		logger.GetLogger().Logger.Error(

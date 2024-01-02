@@ -33,8 +33,8 @@ func MakeTeamsController(c *gin.Context) {
 	}
 
 	game, err := services.GetGameService().MakeTeams(gamemeta)
-	// So what we should do is, we should extend the basic error class provided by golang 
-	// and make custom errors and we could have a global error handler which figures out the 
+	// So what we should do is, we should extend the basic error class provided by golang
+	// and make custom errors and we could have a global error handler which figures out the
 	// status code using the error type
 	// The above call could return error because of multiple reasons other than just server error
 	if err != nil {
