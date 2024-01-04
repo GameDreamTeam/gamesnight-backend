@@ -92,13 +92,12 @@ func GetGameMeta(gameId string) (*models.GameMeta, error) {
 
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "Getting Game Meta failed")
+		return nil, errors.Wrap(err, "game not found")
 	}
-	// var name should be gameMeta as game meta is being returned
 	var gameMeta models.GameMeta
 	err = json.Unmarshal([]byte(result), &gameMeta)
 	if err != nil {
-		return nil, errors.Wrap(err, "Converting game meta json to game object failed")
+		return nil, errors.Wrap(err, "converting game meta json to game object failed")
 	}
 
 	return &gameMeta, nil

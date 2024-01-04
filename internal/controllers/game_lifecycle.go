@@ -9,14 +9,12 @@ import (
 )
 
 func NewGameController(c *gin.Context) {
-	//Check if player exist
 	player, err := getPlayerFromContext(c)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	//Create new game
 	gameMeta, err := services.GetGameService().CreateNewGame(*player.Id)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
@@ -27,7 +25,6 @@ func NewGameController(c *gin.Context) {
 }
 
 func JoinGameController(c *gin.Context) {
-	//Check if player exist
 	player, err := getPlayerFromContext(c)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)

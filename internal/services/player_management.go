@@ -100,18 +100,17 @@ func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player) 
 	}
 
 	if !contains(*gameMeta.Players, &player) {
-		return errors.New("you must join the game to submit the phrase")
+		return errors.New("player not found in the game")
 	}
 	return nil
 }
 
-func (ps *PlayerService) PlayerAlreadyAddedPhrases(player models.Player) error {
-	//Change the name of this variable
-	redisPlayer, err := database.GetPlayerDetails(*player.Id)
+func (ps *PlayerService) PlayerAlreadyAddedPhrases(playerId string) error {
+	player, err := database.GetPlayerDetails(playerId)
 	if err != nil {
 		return err
 	}
-	if redisPlayer.PhrasesSubmitted {
+	if player.PhrasesSubmitted {
 		return errors.New("you have already added phrases")
 	}
 	return nil

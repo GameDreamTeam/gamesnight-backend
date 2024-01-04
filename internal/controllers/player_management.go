@@ -38,14 +38,12 @@ func GetPlayerPhrasesController(c *gin.Context) {
 }
 
 func RemovePlayerController(c *gin.Context) {
-	// Get player ID to be removed from the request
 	playerId := c.Param("playerId")
 
-	// Fetch the game meta using game ID
 	gameId := c.Param("gameId")
 	gameMeta, err := services.GetGameService().GetGameMeta(gameId)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
@@ -64,7 +62,6 @@ func RemovePlayerController(c *gin.Context) {
 
 	// Validate that the player to be removed is not admin
 	if adminId != playerId {
-		// Remove the player from the game meta and write to redis
 		updatedGameMeta, err := services.GetPlayerService().RemovePlayer(gameMeta, playerId)
 		if err != nil {
 			SendResponse(c, http.StatusInternalServerError, nil, err)

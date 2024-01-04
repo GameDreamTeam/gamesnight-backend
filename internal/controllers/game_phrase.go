@@ -16,23 +16,20 @@ func AddPhraseController(c *gin.Context) {
 	}
 
 	gameId := c.Param("gameId")
-	// Game service should check if player exists in game or not
+
 	err = services.GetPlayerService().PlayerExistInGame(gameId, *player)
 	if err != nil {
-		// This should be player not found in game (404)
-		SendResponse(c, http.StatusBadRequest, nil, err)
+		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
-	//Check if player has already submitted phrases
 	// Update information at both place (game and player)
-	err = services.GetPlayerService().PlayerAlreadyAddedPhrases(*player)
+	err = services.GetPlayerService().PlayerAlreadyAddedPhrases(*player.Id)
 	if err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)
 		return
 	}
 
-	//Take phrases as an input from user
 	var phraseList models.PhraseList
 	err = BindJSONAndHandleError(c, &phraseList)
 	if err != nil {
@@ -40,7 +37,6 @@ func AddPhraseController(c *gin.Context) {
 		return
 	}
 
-	//Check total number of phrases submitted
 	err = CheckPhraseListLength(phraseList)
 	if err != nil {
 		SendResponse(c, http.StatusBadRequest, nil, err)
