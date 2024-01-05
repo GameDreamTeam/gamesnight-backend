@@ -24,6 +24,31 @@ func NewGameController(c *gin.Context) {
 	SendResponse(c, http.StatusOK, gameMeta, nil)
 }
 
+func ChangeState(c *gin.Context) {
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	gameId := c.Param("gameId")
+	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	err = isAdminPlayer(*gamemeta, player)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	game, err := services.GetGameService().ChangeStateOfGame(gameId)
+
+	SendResponse(c, http.StatusOK, game, nil)
+}
+
 func JoinGameController(c *gin.Context) {
 	player, err := getPlayerFromContext(c)
 	if err != nil {

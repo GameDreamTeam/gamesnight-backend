@@ -21,6 +21,7 @@ func SetupRouter(r *gin.Engine) {
 			game.GET("/:gameId/details", controllers.GetGameController)
 			game.GET("/:gameId/phrases", controllers.GetGamePhrasesController)
 
+			game.POST("/:gameId/changeState", controllers.ChangeState)
 			game.POST("/:gameId/phrases", controllers.AddPhraseController)
 			game.POST("/:gameId/teams", controllers.MakeTeamsController)
 			game.POST("/:gameId/start", controllers.StartGameController)
@@ -36,7 +37,7 @@ func SetupRouter(r *gin.Engine) {
 		{
 			//Maybe merge these 2 apis
 			player.GET("/:playerId/phrases", controllers.GetPlayerPhrasesController)
-			player.GET("/:playerId", controllers.GetPlayerDetailsController)
+			player.GET("/", controllers.GetPlayerDetailsController)
 		}
 
 		api.POST("/feedback", controllers.SubmitFeedbackController)

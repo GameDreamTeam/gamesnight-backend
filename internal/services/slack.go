@@ -51,4 +51,3 @@ func (ss *SlackService) SendToSlack(webhookURL, message string) error {
 
 	return nil
 }
- 

@@ -101,3 +101,19 @@ func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
 
 	return game, nil
 }
+
+func (gs *GameService) ChangeStateOfGame(gameId string) (*models.Game, error) {
+	game, err := database.GetGame(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	game.GameState += 1
+
+	err = database.SetGame(game)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
+}
