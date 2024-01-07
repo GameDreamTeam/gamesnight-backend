@@ -93,26 +93,13 @@ func (ps *PlayerService) NextPlayerAndTeam(gameId string) (*models.Game, error) 
 	return game, nil
 }
 
-// Game should not be player's responsibility. So this code does not belong here
-func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player) error {
-	gameMeta, err := database.GetGameMeta(gameId)
-	if err != nil {
-		return err
-	}
-
-	if !contains(*gameMeta.Players, &player) {
-		logger.GetLogger().Logger.Error("player:" + *player.Id + " has not joined game:" + gameId)
-		return errors.New("player not found in the game")
-	}
-	return nil
-}
-
 func (ps *PlayerService) PlayerAlreadyAddedPhrases(playerId string) error {
 	player, err := database.GetPlayerDetails(playerId)
 	if err != nil {
 		return err
 	}
 	if player.PhrasesSubmitted {
+		logger.GetLogger().Logger.Error("player:" + playerId + " has already submitted phraes")
 		return errors.New("you have already added phrases")
 	}
 	return nil

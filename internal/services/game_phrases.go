@@ -1,37 +1,43 @@
 package services
 
 import (
+	"errors"
 	"gamesnight/internal/database"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"math/rand"
+
+	"go.uber.org/zap"
 )
 
-func (gs *GameService) AddPhrasesToGame(playerId string, gameId string, phraseList *models.PhraseList) error {
-	game, err := database.GetGame(gameId)
+func (gs *GameService) PlayerExistInGame(gameMeta models.GameMeta, player models.Player) error {
+	if !contains(*gameMeta.Players, &player) {
+		logger.GetLogger().Logger.Error("player:" + *player.Id + " has not joined game:" + gameMeta.GameId)
+		return errors.New("player not found in the game")
+	}
+	return nil
+}
+
+func (gs *GameService) AddPhrasesToGame(playerId string, gameMeta *models.GameMeta, phraseList *models.PhraseList) error {
+	newGameMeta, err := MarkPlayerHasAddedWords(gameMeta, playerId)
 	if err != nil {
 		return err
 	}
 
-	if game.GameState != models.AddingWords {
-		if err != nil {
-			return err
-		}
-	}
-	// Add phrases to the game
-	gameMeta, err := gs.GetGameMeta(gameId)
-
-	newGame, err := MarkPlayerHasAddedWords(gameMeta, playerId)
-
+	err = database.SetGameMeta(&newGameMeta)
 	if err != nil {
 		return err
 	}
-	err = database.SetGame(game)
-	err = database.SetGameMeta(&newGame)
 
-	err = database.SetGamePhrases(gameId, phraseList)
+	err = database.SetGamePhrases(gameMeta.GameId, phraseList)
 	if err != nil {
 		return err
 	}
+
+	logger.GetLogger().Logger.Info(
+		"player:"+playerId+" in game:"+gameMeta.GameId+"added words successfully",
+		zap.Any("phraseList", phraseList),
+	)
 
 	return nil
 }
@@ -49,15 +55,6 @@ func (gs *GameService) AddPhrasesToPlayer(player models.Player, phraseList *mode
 	}
 
 	return nil
-}
-
-func (gs *GameService) GetGamePhrases(gameId string) (*models.PhraseList, error) {
-	phrases, err := database.GetGamePhrases(gameId)
-	if err != nil {
-		return nil, err
-	}
-
-	return phrases, nil
 }
 
 func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases models.PhraseStatusMap) error {
@@ -98,26 +95,4 @@ func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.Phra
 	database.SetCurrentPhraseMap(gameId, newMap)
 
 	return newMap
-}
-
-func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
-	//Check if game is teams divided and ready to start
-
-	game, err := database.GetGame(gameId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Need to check the current status of game before starting game
-
-	//Minimum 2 players need to present otherwise it will throw out of bounds in array
-	// Name of method should be a verb
-	updatedGame := StartingCurrentAndNextPlayer(game)
-
-	err = database.SetGame(updatedGame)
-	if err != nil {
-		return nil, err
-	}
-
-	return game, nil
 }

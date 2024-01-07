@@ -1,20 +1,20 @@
 package services
 
 import (
+	"errors"
 	"gamesnight/internal/database"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
+
+	"go.uber.org/zap"
 )
 
 func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error) {
-	//Check if game already exists or not before making teams
-
 	// Need to acquire a lock before setting this team
 	game, err := database.GetGame(gamemeta.GameId)
 	if err != nil {
 		return nil, err
 	}
-	// If we have fetched the game then we should check the status of game.
-	//If it is already teams divided or further ahead then we should not allow this
 
 	// Check if atleast 2 players exist in the game
 	// Future we have to make number of teams customizable
@@ -39,11 +39,23 @@ func (gs *GameService) MakeTeams(gamemeta *models.GameMeta) (*models.Game, error
 	game.Teams = &teams
 	game.GameState = models.TeamsDivided
 
-	// Write this to redis
 	err = database.SetGame(game)
 	if err != nil {
 		return nil, err
 	}
 
+	logger.GetLogger().Logger.Info(
+		"Teams for game:"+game.GameId+" divided successfull",
+		zap.Any("teams", game.Teams))
+
 	return game, nil
+}
+
+func (gs *GameService) CheckIfAllPlayerHaveSubmittedPhrases(gameMeta models.GameMeta) error {
+	for _, player := range *gameMeta.Players {
+		if !player.PhrasesSubmitted {
+			return errors.New("all players have not submitted words")
+		}
+	}
+	return nil
 }

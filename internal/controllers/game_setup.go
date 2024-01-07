@@ -50,6 +50,7 @@ func JoinGameController(c *gin.Context) {
 	}
 	if game.GameState != models.PlayersJoining {
 		SendResponse(c, http.StatusConflict, nil, errors.New("The game is not in the joiningState"))
+		return
 	}
 
 	gameMeta, err := services.GetGameService().GetGameMeta(gameId)
@@ -75,13 +76,18 @@ func UpdateState(c *gin.Context) {
 	}
 
 	gameId := c.Param("gameId")
-	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
+	gameMeta, err := services.GetGameService().GetGameMeta(gameId)
 	if err != nil {
 		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
-	err = isAdminPlayer(*gamemeta, player)
+	if len(*gameMeta.Players) < 2 {
+		SendResponse(c, http.StatusBadRequest, nil, errors.New("minimum 2 players to continue with game"))
+		return
+	}
+
+	err = isAdminPlayer(*gameMeta, player)
 	if err != nil {
 		SendResponse(c, http.StatusForbidden, nil, err)
 		return
@@ -89,7 +95,7 @@ func UpdateState(c *gin.Context) {
 
 	game, err := services.GetGameService().UpdateStateOfGame(gameId)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusInternalServerError, nil, errors.New("Minimum number of players must be 2"))
 		return
 	}
 

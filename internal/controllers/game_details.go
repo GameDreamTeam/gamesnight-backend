@@ -23,8 +23,20 @@ func GetGameController(c *gin.Context) {
 	game, err := services.GetGameService().GetGame(gameId)
 
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 	SendResponse(c, http.StatusOK, game, nil)
+}
+
+func GetGamePhrasesController(c *gin.Context) {
+	gameId := c.Param("gameId")
+
+	phrases, err := services.GetGameService().GetGamePhrases(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusNotFound, nil, err)
+		return
+	}
+
+	SendResponse(c, http.StatusOK, phrases, nil)
 }
