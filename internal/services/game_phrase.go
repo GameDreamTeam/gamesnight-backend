@@ -6,21 +6,28 @@ import (
 	"math/rand"
 )
 
-func (gs *GameService) AddPhrasesToGame(gameId string, phraseList *models.PhraseList) error {
-	// Check if game exists
-	game, err := gs.GetGame(gameId)
+func (gs *GameService) AddPhrasesToGame(playerId string, gameId string, phraseList *models.PhraseList) error {
+	game, err := database.GetGame(gameId)
 	if err != nil {
 		return err
 	}
 
 	if game.GameState != models.AddingWords {
-		game.GameState = models.AddingWords
-		err = database.SetGame(game)
 		if err != nil {
 			return err
 		}
 	}
 	// Add phrases to the game
+	gameMeta, err := gs.GetGameMeta(gameId)
+
+	newGame, err := MarkPlayerHasAddedWords(gameMeta, playerId)
+
+	if err != nil {
+		return err
+	}
+	err = database.SetGame(game)
+	err = database.SetGameMeta(&newGame)
+
 	err = database.SetGamePhrases(gameId, phraseList)
 	if err != nil {
 		return err
@@ -91,4 +98,26 @@ func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.Phra
 	database.SetCurrentPhraseMap(gameId, newMap)
 
 	return newMap
+}
+
+func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
+	//Check if game is teams divided and ready to start
+
+	game, err := database.GetGame(gameId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Need to check the current status of game before starting game
+
+	//Minimum 2 players need to present otherwise it will throw out of bounds in array
+	// Name of method should be a verb
+	updatedGame := StartingCurrentAndNextPlayer(game)
+
+	err = database.SetGame(updatedGame)
+	if err != nil {
+		return nil, err
+	}
+
+	return game, nil
 }

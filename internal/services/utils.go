@@ -3,10 +3,39 @@ package services
 import (
 	"errors"
 	"gamesnight/internal/database"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 	"math/rand"
 	"time"
 )
+
+func MarkPlayerHasAddedWords(gameMeta *models.GameMeta, playerId string) (models.GameMeta, error) {
+	for i, player := range *gameMeta.Players {
+		if *player.Id == playerId {
+			(*gameMeta.Players)[i].PhrasesSubmitted = true
+			return *gameMeta, nil
+		}
+	}
+	return *gameMeta, errors.New("player does not exist in the game")
+
+}
+
+func GetGameState(state models.GameState) string {
+	switch state {
+	case 0:
+		return "PlayersJoining"
+	case 1:
+		return "AddingWords"
+	case 2:
+		return "TeamsDivided"
+	case 3:
+		return "Playing"
+	case 4:
+		return "Finished"
+	default:
+		return "UnknownState"
+	}
+}
 
 func contains(playerSlice []models.Player, player *models.Player) bool {
 	for _, p := range playerSlice {
@@ -30,8 +59,7 @@ func addPlayerToGame(gameMeta *models.GameMeta, player *models.Player) (*models.
 	if !contains(*gameMeta.Players, player) {
 		*gameMeta.Players = append(*gameMeta.Players, *player)
 	} else {
-		// Return custom error here (404)
-		// If player already exists then it is not 404 it is 400 or something
+		logger.GetLogger().Logger.Error("player:" + *player.Id + " already exist in the game:" + gameMeta.GameId)
 		return nil, errors.New("player already exists in this game")
 	}
 

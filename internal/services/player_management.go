@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"gamesnight/internal/database"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 )
 
@@ -100,6 +101,7 @@ func (ps *PlayerService) PlayerExistInGame(gameId string, player models.Player) 
 	}
 
 	if !contains(*gameMeta.Players, &player) {
+		logger.GetLogger().Logger.Error("player:" + *player.Id + " has not joined game:" + gameId)
 		return errors.New("player not found in the game")
 	}
 	return nil

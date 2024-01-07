@@ -2,6 +2,7 @@ package services
 
 import (
 	"gamesnight/internal/database"
+	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
 )
 
@@ -35,7 +36,6 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 	// reduce the number of network calls we make to redis, hence we can store most information in same
 	// object of Game and GameMeta
 
-	// Add log here that player xyz created game abc
 	gameMeta := models.GameMeta{
 		GameId:    gameId,
 		AdminId:   playerId,
@@ -48,6 +48,8 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 		GameState: models.PlayersJoining,
 	}
 
+	logger.GetLogger().Logger.Info("player:" + playerId + " created game:" + gameId + " successfully")
+
 	// Use go routines here for concurrency and better speed
 	database.SetGameMeta(&gameMeta)
 	database.SetGame(&game)
@@ -55,22 +57,20 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 	return &gameMeta, nil
 }
 
-func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.GameMeta, error) {
+func (gs *GameService) JoinGame(gameMeta *models.GameMeta, player *models.Player) (*models.GameMeta, error) {
 	// This entire portion has to acquire a lock when having high concurrency
-	gameMeta, err := database.GetGameMeta(gameId)
+
+	gameMetaWithPlayer, err := addPlayerToGame(gameMeta, player)
 	if err != nil {
 		return nil, err
 	}
 
-	gameMeta, err = addPlayerToGame(gameMeta, player)
+	err = database.SetGameMeta(gameMetaWithPlayer)
 	if err != nil {
 		return nil, err
 	}
 
-	err = database.SetGameMeta(gameMeta)
-	if err != nil {
-		return nil, err
-	}
+	logger.GetLogger().Logger.Info("player:" + *player.Id + " joined game:" + gameMeta.GameId + " successfully")
 
 	err = database.SetPlayerDetails(*player)
 	if err != nil {
@@ -80,29 +80,7 @@ func (gs *GameService) JoinGame(gameId string, player *models.Player) (*models.G
 	return gameMeta, nil
 }
 
-func (gs *GameService) StartGame(gameId string) (*models.Game, error) {
-	//Check if game is teams divided and ready to start
-
-	game, err := database.GetGame(gameId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Need to check the current status of game before starting game
-
-	//Minimum 2 players need to present otherwise it will throw out of bounds in array
-	// Name of method should be a verb
-	updatedGame := StartingCurrentAndNextPlayer(game)
-
-	err = database.SetGame(updatedGame)
-	if err != nil {
-		return nil, err
-	}
-
-	return game, nil
-}
-
-func (gs *GameService) ChangeStateOfGame(gameId string) (*models.Game, error) {
+func (gs *GameService) UpdateStateOfGame(gameId string) (*models.Game, error) {
 	game, err := database.GetGame(gameId)
 	if err != nil {
 		return nil, err
@@ -114,6 +92,9 @@ func (gs *GameService) ChangeStateOfGame(gameId string) (*models.Game, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	currentGameState := GetGameState(game.GameState)
+	logger.GetLogger().Logger.Info("GameState of game:" + gameId + " updated to " + currentGameState)
 
 	return game, nil
 }

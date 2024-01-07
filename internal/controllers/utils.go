@@ -12,18 +12,20 @@ import (
 func getPlayerFromContext(c *gin.Context) (*models.Player, error) {
 	p, exists := c.Get("player")
 	if !exists {
+		logger.GetLogger().Logger.Error("user cookie does not exist")
 		return nil, errors.New("player does not exist")
 	}
+
 	return p.(*models.Player), nil
 }
 
 func isAdminPlayer(gamemeta models.GameMeta, player *models.Player) error {
 	if *player.Id != gamemeta.AdminId {
-		logger.GetLogger().Logger.Error(
-			"player starting game should be admin",
+		logger.GetLogger().Logger.Error("player starting game should be admin",
 			zap.Any("gamemeta", gamemeta),
 			zap.Any("player", player),
 		)
+
 		return errors.New("player starting game should be admin")
 	}
 
@@ -32,6 +34,7 @@ func isAdminPlayer(gamemeta models.GameMeta, player *models.Player) error {
 
 func BindJSONAndHandleError(c *gin.Context, obj interface{}) error {
 	if err := c.BindJSON(obj); err != nil {
+		logger.GetLogger().Logger.Error("input mismatch from the client")
 		return errors.New("cannot bind body data")
 	}
 	return nil

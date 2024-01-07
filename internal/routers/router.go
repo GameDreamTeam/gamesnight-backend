@@ -21,7 +21,8 @@ func SetupRouter(r *gin.Engine) {
 			game.GET("/:gameId/details", controllers.GetGameController)
 			game.GET("/:gameId/phrases", controllers.GetGamePhrasesController)
 
-			game.POST("/:gameId/changeState", controllers.ChangeState)
+			game.PATCH("/:gameId/update-state", controllers.UpdateState)
+
 			game.POST("/:gameId/phrases", controllers.AddPhraseController)
 			game.POST("/:gameId/teams", controllers.MakeTeamsController)
 			game.POST("/:gameId/start", controllers.StartGameController)
