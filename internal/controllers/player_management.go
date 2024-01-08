@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
 
@@ -38,7 +37,11 @@ func GetPlayerPhrasesController(c *gin.Context) {
 }
 
 func RemovePlayerController(c *gin.Context) {
-	playerId := c.Param("playerId")
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusNotFound, nil, err)
+		return
+	}
 
 	gameId := c.Param("gameId")
 	gameMeta, err := services.GetGameService().GetGameMeta(gameId)
@@ -47,24 +50,17 @@ func RemovePlayerController(c *gin.Context) {
 		return
 	}
 
-	adminId := gameMeta.AdminId
-
-	p, exists := c.Get("player")
-	if !exists {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-	}
-	player := p.(*models.Player)
-
 	err = isAdminPlayer(*gameMeta, player)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusForbidden, nil, err)
 	}
 
-	// Validate that the player to be removed is not admin
-	if adminId != playerId {
-		updatedGameMeta, err := services.GetPlayerService().RemovePlayer(gameMeta, playerId)
+	adminId := gameMeta.AdminId
+	playerToBeRemovedId := c.Param("playerId")
+	if adminId != playerToBeRemovedId {
+		updatedGameMeta, err := services.GetPlayerService().RemovePlayer(gameMeta, playerToBeRemovedId)
 		if err != nil {
-			SendResponse(c, http.StatusInternalServerError, nil, err)
+			SendResponse(c, http.StatusNotFound, nil, err)
 			return
 		}
 

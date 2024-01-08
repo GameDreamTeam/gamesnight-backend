@@ -58,21 +58,11 @@ func (gs *GameService) AddPhrasesToPlayer(player models.Player, phraseList *mode
 }
 
 func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases models.PhraseStatusMap) error {
-	err := database.SetCurrentPhraseMap(gameId, currentPhrases)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return database.SetCurrentPhraseMap(gameId, currentPhrases)
 }
 
 func (gs *GameService) GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
-	currentPhrases, err := database.GetCurrentPhraseMap(gameId)
-	if err != nil {
-		return models.PhraseStatusMap{}, err
-	}
-
-	return currentPhrases, nil
+	return database.GetCurrentPhraseMap(gameId)
 }
 
 func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.PhraseStatusMap) models.PhraseStatusMap {

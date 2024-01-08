@@ -7,6 +7,8 @@ import (
 	"gamesnight/internal/models"
 	"math/rand"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 func MarkPlayerHasAddedWords(gameMeta *models.GameMeta, playerId string) (models.GameMeta, error) {
@@ -79,7 +81,6 @@ func dividePlayersIntoTeams(players []models.Player) ([]models.Player, []models.
 
 func GeneratePhraseListToMap(phrases *models.PhraseList) (models.PhraseStatusMap, error) {
 	if phrases == nil || phrases.List == nil {
-		// return error
 		return models.PhraseStatusMap{}, errors.New("no phrases found")
 	}
 
@@ -92,7 +93,7 @@ func GeneratePhraseListToMap(phrases *models.PhraseList) (models.PhraseStatusMap
 		phraseStatusMap.Phrases[i] = phrase
 		phraseStatusMap.Status[i] = models.NotGuessed
 	}
-
+	logger.GetLogger().Logger.Info("Phrase Map genereated successfully", zap.Any("phraseStatusMap", phraseStatusMap))
 	return phraseStatusMap, nil
 }
 
@@ -150,7 +151,7 @@ func StartingCurrentAndNextPlayer(game *models.Game) *models.Game {
 
 	//Set the NextPlayer
 	game.NextPlayer = &(*(*game.Teams)[nextTeamIndex].Players)[nextTeamCurrentPlayerIndex]
-
+	logger.GetLogger().Logger.Info("game initialised successfully", zap.Any("game", game))
 	return game
 }
 

@@ -10,7 +10,6 @@ const (
 )
 
 var (
-	CurrentIndex  int = 0
 	TurnStartTime time.Time
 )
 

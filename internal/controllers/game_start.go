@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"errors"
+	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
 
@@ -8,28 +10,37 @@ import (
 )
 
 func StartGameController(c *gin.Context) {
-	gameId := c.Param("gameId")
-	// Rename this to check if game exists or not
-	// We need to always check if game exists or not. This can be a middleware infact
-	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
+	player, err := getPlayerFromContext(c)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
-	player, err := getPlayerFromContext(c)
+	gameId := c.Param("gameId")
+	gamemeta, err := services.GetGameService().GetGameMeta(gameId)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
 	err = isAdminPlayer(*gamemeta, player)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusForbidden, nil, err)
 		return
 	}
 
-	game, err := services.GetGameService().StartGame(gamemeta.GameId)
+	game, err := services.GetGameService().GetGame(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusNotFound, nil, err)
+		return
+	}
+
+	if game.GameState != models.TeamsDivided {
+		SendResponse(c, http.StatusConflict, nil, errors.New("The game has not been divided into teams"))
+		return
+	}
+
+	gameWithInitialisation, err := services.GetGameService().StartGame(game)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -37,7 +48,7 @@ func StartGameController(c *gin.Context) {
 
 	gamePhrases, err := services.GetGameService().GetGamePhrases(gameId)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
+		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
@@ -53,5 +64,5 @@ func StartGameController(c *gin.Context) {
 		return
 	}
 
-	SendResponse(c, http.StatusOK, game, nil)
+	SendResponse(c, http.StatusOK, gameWithInitialisation, nil)
 }

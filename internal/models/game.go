@@ -20,15 +20,15 @@ type GameMeta struct {
 }
 
 type Game struct {
-	GameId           string    `json:"gameId"`
-	GameState        GameState `json:"state"`
-	Teams            *[]Team   `json:"teams"`
-	CurrentPlayer    *Player   `json:"currentPlayer"`
-	NextPlayer       *Player   `json:"nextPlayer"`
-	CurrentTeamIndex int       `json:"currentTeamIndex"`
+	GameId                string    `json:"gameId"`
+	GameState             GameState `json:"state"`
+	Teams                 *[]Team   `json:"teams"`
+	CurrentPlayer         *Player   `json:"currentPlayer"`
+	NextPlayer            *Player   `json:"nextPlayer"`
+	CurrentTeamIndex      int       `json:"currentTeamIndex"`
+	CurrentPhraseMapIndex int       `json:"currentPhraseMapIndex"`
 }
 
-// Ideally index should not be stored here. Bad coupling
 type Team struct {
 	Name               string    `json:"name"`
 	Players            *[]Player `json:"players"`

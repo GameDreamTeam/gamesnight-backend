@@ -95,7 +95,7 @@ func UpdateState(c *gin.Context) {
 
 	game, err := services.GetGameService().UpdateStateOfGame(gameId)
 	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, errors.New("Minimum number of players must be 2"))
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
