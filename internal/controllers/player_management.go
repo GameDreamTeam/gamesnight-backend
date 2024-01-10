@@ -15,13 +15,13 @@ func GetPlayerDetailsController(c *gin.Context) {
 		return
 	}
 
-	// playerInfo, err := services.GetPlayerService().GetPlayerDetails(*player.Id)
-	// if err != nil {
-	// 	SendResponse(c, http.StatusInternalServerError, nil, err)
-	// 	return
-	// }
+	playerInfo, err := services.GetPlayerService().GetPlayerDetails(*player.Id)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
 
-	SendResponse(c, http.StatusOK, player, nil)
+	SendResponse(c, http.StatusOK, playerInfo, nil)
 }
 
 func GetPlayerPhrasesController(c *gin.Context) {
