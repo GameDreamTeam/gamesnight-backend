@@ -35,7 +35,7 @@ func StartTurnController(c *gin.Context) {
 	// Also note middleware is also like abstracting away some logic into a function
 	// It makes it clear what requirements are needed
 
-	err = services.GetGameService().CheckCurrentPlayer(*player.Id, game.GameId)
+	err = services.GetGameService().CheckCurrentPlayer(*player.Id, *game.CurrentPlayer.Id)
 	if err != nil {
 		SendResponse(c, http.StatusForbidden, nil, errors.New("player starting turn should be current player"))
 		return

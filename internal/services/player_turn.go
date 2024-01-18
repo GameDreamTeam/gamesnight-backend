@@ -39,8 +39,8 @@ func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) error 
 	return nil
 }
 
-func (gs *GameService) CheckCurrentPlayer(gameId string, playerId string) error {
-	if playerId != gameId {
+func (gs *GameService) CheckCurrentPlayer(playerGameId string, playerId string) error {
+	if playerId != playerGameId {
 		logger.GetLogger().Logger.Error(
 			"player starting turn should be current player",
 		)
