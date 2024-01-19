@@ -5,16 +5,17 @@ import (
 	"gamesnight/internal/database"
 	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
+
+	"go.uber.org/zap"
 )
 
 func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap, phraseIndex int) (string, error) {
 
 	if phraseIndex >= len(currentPhrases.Phrases) {
 		//Show EndTheGame
-		return "", errors.New("index out of range")
+		return "the game has ended", errors.New("index out of range")
 	}
 
-	// Get the phrase at the specified index
 	phrase := currentPhrases.Phrases[phraseIndex]
 
 	return phrase.Input, nil
@@ -26,7 +27,6 @@ func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) error 
 		return err
 	}
 
-	// Update the choice based on the request
 	if choice == "guessed" {
 		currentPhrases.Status[game.CurrentPhraseMapIndex] = models.Guessed
 		(*game.Teams)[game.CurrentTeamIndex].Score += 10
@@ -39,10 +39,12 @@ func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) error 
 	return nil
 }
 
-func (gs *GameService) CheckCurrentPlayer(playerGameId string, playerId string) error {
-	if playerId != playerGameId {
+func (gs *GameService) CheckCurrentPlayer(playerId string, gameCurrentPlayer string) error {
+	if playerId != gameCurrentPlayer {
 		logger.GetLogger().Logger.Error(
 			"player starting turn should be current player",
+			zap.Any("player", playerId),
+			zap.Any("gameCurrent", gameCurrentPlayer),
 		)
 		return errors.New("you are not the current player")
 

@@ -54,13 +54,62 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	responseData := models.ResponseData{
-		PhraseMap:     &currentPhraseMap,
-		CurrentPhrase: PhraseToBeGuessed,
-		TurnStartedAt: models.TurnStartTime,
+	SendResponse(c, http.StatusOK, PhraseToBeGuessed, nil)
+}
+
+func PlayerGuessController(c *gin.Context) {
+	player, err := getPlayerFromContext(c)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
 	}
 
-	SendResponse(c, http.StatusOK, responseData, nil)
+	gameId := c.Param("gameId")
+	game, err := services.GetGameService().GetGame(gameId)
+
+	if err != nil || game.GameState != models.Playing {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	if *player.Id != *game.CurrentPlayer.Id {
+		logger.GetLogger().Logger.Error(
+			"player making guess should be current player",
+			zap.Any("game", game),
+			zap.Any("player", player),
+		)
+		SendResponse(c, http.StatusInternalServerError, nil,
+			errors.New("player making guess should be current player"))
+		return
+	}
+
+	var guessRequest models.PlayerGuess
+	err = BindJSONAndHandleError(c, &guessRequest)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	err = services.GetGameService().HandlePlayerGuess(*game, guessRequest.PlayerChoice)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusInternalServerError, nil, err)
+		return
+	}
+
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, game.CurrentPhraseMapIndex)
+
+	if err != nil {
+		SendResponse(c, http.StatusOK, PhraseToBeGuessed, nil)
+		return
+	}
+
+	SendResponse(c, http.StatusOK, PhraseToBeGuessed, nil)
 }
 
 func EndTurnController(c *gin.Context) {
@@ -104,69 +153,4 @@ func EndTurnController(c *gin.Context) {
 
 	models.TurnStartTime = time.Time{}
 	SendResponse(c, http.StatusOK, updatedPhraseMap, nil)
-}
-
-func PlayerGuessController(c *gin.Context) {
-	// can remove validations here to make API lightweight
-	player, err := getPlayerFromContext(c)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	gameId := c.Param("gameId")
-	game, err := services.GetGameService().GetGame(gameId)
-
-	// Throw different error if game is not playing
-	if err != nil || game.GameState != models.Playing {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	if *player.Id != *game.CurrentPlayer.Id {
-		logger.GetLogger().Logger.Error(
-			"player making guess should be current player",
-			zap.Any("game", game),
-			zap.Any("player", player),
-		)
-		SendResponse(c, http.StatusInternalServerError, nil,
-			errors.New("player making guess should be current player"))
-		return
-	}
-
-	// Parse request body
-	var guessRequest models.PlayerGuess
-	err = BindJSONAndHandleError(c, &guessRequest)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	err = services.GetGameService().HandlePlayerGuess(*game, guessRequest.PlayerChoice)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, game.CurrentPhraseMapIndex)
-
-	if err != nil {
-		// SendResponse(c, http.StatusInternalServerError, nil, err)
-		//Write End Game Service here
-		return
-	}
-
-	responseData := models.ResponseData{
-		PhraseMap:     &currentPhraseMap,
-		CurrentPhrase: PhraseToBeGuessed,
-	}
-
-	SendResponse(c, http.StatusOK, responseData, nil)
-
 }

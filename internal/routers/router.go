@@ -21,17 +21,18 @@ func SetupRouter(r *gin.Engine) {
 			game.GET("/:gameId/meta", controllers.GetGameMetaController)
 			game.GET("/:gameId/details", controllers.GetGameController)
 			game.GET("/:gameId/phrases", controllers.GetGamePhrasesController)
+			game.GET("/:gameId/current-phrases", controllers.GetCurrentGamePhrasesController)
 
 			game.POST("/:gameId/phrases", controllers.AddPhrasesController)
 			game.POST("/:gameId/teams", controllers.MakeTeamsController)
 
 			game.POST("/:gameId/start", controllers.StartGameController)
 			game.POST("/:gameId/turns/start", controllers.StartTurnController)
+			game.POST("/:gameId/choices", controllers.PlayerGuessController)
+			game.POST("/:gameId/turns/end", controllers.EndTurnController)
 
 			game.DELETE("/:gameId/players/:playerId", controllers.RemovePlayerController)
 
-			game.POST("/:gameId/choices", controllers.PlayerGuessController)
-			game.POST("/:gameId/turns/end", controllers.EndTurnController)
 		}
 
 		player := api.Group("/players")

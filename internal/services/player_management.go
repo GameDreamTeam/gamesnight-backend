@@ -84,6 +84,7 @@ func (ps *PlayerService) NextPlayerAndTeam(gameId string) (*models.Game, error) 
 		return game, err
 	}
 	updateGame := ChangeNextPlayerAndTeam(game)
+	game.CurrentPhraseMapIndex = 0
 
 	err = database.SetGame(updateGame)
 	if err != nil {

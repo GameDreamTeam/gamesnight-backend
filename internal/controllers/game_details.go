@@ -40,3 +40,15 @@ func GetGamePhrasesController(c *gin.Context) {
 
 	SendResponse(c, http.StatusOK, phrases, nil)
 }
+
+func GetCurrentGamePhrasesController(c *gin.Context) {
+	gameId := c.Param("gameId")
+
+	phrases, err := services.GetGameService().GetCurrentPhraseMap(gameId)
+	if err != nil {
+		SendResponse(c, http.StatusNotFound, nil, err)
+		return
+	}
+
+	SendResponse(c, http.StatusOK, phrases, nil)
+}
