@@ -82,7 +82,7 @@ func EndTurnController(c *gin.Context) {
 		return
 	}
 
-	err = services.GetGameService().CheckCurrentPlayer(*player.Id, game.GameId)
+	err = services.GetGameService().CheckCurrentPlayer(*player.Id, *game.CurrentPlayer.Id)
 	if err != nil {
 		SendResponse(c, http.StatusForbidden, nil, errors.New("player ending turn should be current player"))
 		return
