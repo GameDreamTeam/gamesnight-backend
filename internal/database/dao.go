@@ -15,7 +15,7 @@ func SetGame(game *models.Game) error {
 
 	jsonGame, err := json.Marshal(game)
 	if err != nil {
-		return errors.Wrap(err, "Game json conversion failed while setting game")
+		return errors.New("game json conversion failed while setting game")
 	}
 
 	err = rc.Client.Set(key, jsonGame, 24*time.Hour).Err()

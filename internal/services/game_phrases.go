@@ -61,8 +61,17 @@ func (gs *GameService) SetCurrentPhraseMap(gameId string, currentPhrases models.
 	return database.SetCurrentPhraseMap(gameId, currentPhrases)
 }
 
-func (gs *GameService) GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
-	return database.GetCurrentPhraseMap(gameId)
+func (gs *GameService) GetCurrentPhraseMap(game models.Game) (models.PhraseStatusMap, error) {
+	currentGamePhraseMap, err := database.GetCurrentPhraseMap(game.GameId)
+	if err != nil {
+		return currentGamePhraseMap, err
+	}
+	if len(currentGamePhraseMap.Phrases) == 0 {
+		game.GameState = models.Finished
+		database.SetGame(&game)
+		return currentGamePhraseMap, errors.New("all phrase are completed")
+	}
+	return currentGamePhraseMap, nil
 }
 
 func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.PhraseStatusMap) models.PhraseStatusMap {

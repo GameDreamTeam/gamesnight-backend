@@ -31,24 +31,19 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	// I think this could also be a middleware
-	// Also note middleware is also like abstracting away some logic into a function
-	// It makes it clear what requirements are needed
-
 	err = services.GetGameService().CheckCurrentPlayer(*player.Id, *game.CurrentPlayer.Id)
 	if err != nil {
 		SendResponse(c, http.StatusForbidden, nil, errors.New("player starting turn should be current player"))
 		return
 	}
 
-	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(*game)
 	if err != nil {
 		SendResponse(c, http.StatusNotFound, nil, err)
 		return
 	}
 
-	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, game.CurrentPhraseMapIndex)
-
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, *game)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -90,19 +85,14 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	err = services.GetGameService().HandlePlayerGuess(*game, guessRequest.PlayerChoice)
+	currentPhraseMap, err := services.GetGameService().HandlePlayerGuess(*game, guessRequest.PlayerChoice)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
-	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
-	if err != nil {
-		SendResponse(c, http.StatusInternalServerError, nil, err)
-		return
-	}
-
-	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, game.CurrentPhraseMapIndex)
+	game, err = services.GetGameService().GetGame(gameId)
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, *game)
 
 	if err != nil {
 		SendResponse(c, http.StatusOK, PhraseToBeGuessed, nil)
@@ -143,7 +133,7 @@ func EndTurnController(c *gin.Context) {
 		return
 	}
 
-	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(gameId)
+	currentPhraseMap, err := services.GetGameService().GetCurrentPhraseMap(*game)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return

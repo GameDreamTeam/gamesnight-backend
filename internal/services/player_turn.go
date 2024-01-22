@@ -9,34 +9,33 @@ import (
 	"go.uber.org/zap"
 )
 
-func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap, phraseIndex int) (string, error) {
-
+func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap, game models.Game) (string, error) {
+	phraseIndex := game.CurrentPhraseMapIndex
 	if phraseIndex >= len(currentPhrases.Phrases) {
-		//Show EndTheGame
-		return "the game has ended", errors.New("index out of range")
+		game.GameState = models.Finished
+		database.SetGame(&game)
+		return "the game has ended", nil
 	}
 
 	phrase := currentPhrases.Phrases[phraseIndex]
-
 	return phrase.Input, nil
 }
 
-func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) error {
-	currentPhrases, err := gs.GetCurrentPhraseMap(game.GameId)
+func (gs *GameService) HandlePlayerGuess(game models.Game, choice string) (models.PhraseStatusMap, error) {
+	currentPhraseMap, err := gs.GetCurrentPhraseMap(game)
 	if err != nil {
-		return err
+		return currentPhraseMap, err
 	}
 
 	if choice == "guessed" {
-		currentPhrases.Status[game.CurrentPhraseMapIndex] = models.Guessed
+		currentPhraseMap.Status[game.CurrentPhraseMapIndex] = models.Guessed
 		(*game.Teams)[game.CurrentTeamIndex].Score += 10
-		game.CurrentPhraseMapIndex += 1
-		database.SetGame(&game)
 	}
+	game.CurrentPhraseMapIndex += 1
+	database.SetGame(&game)
+	gs.SetCurrentPhraseMap(game.GameId, currentPhraseMap)
 
-	gs.SetCurrentPhraseMap(game.GameId, currentPhrases)
-
-	return nil
+	return currentPhraseMap, nil
 }
 
 func (gs *GameService) CheckCurrentPlayer(playerId string, gameCurrentPlayer string) error {
