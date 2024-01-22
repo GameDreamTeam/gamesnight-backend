@@ -30,22 +30,22 @@ func getLocalClient() (*redis.Client, error) {
 
 func NewRedisClient() {
 	var rdb *redis.Client
-    var err error
+	var err error
 
 	if config.Get().Env == "local" {
 		rdb, err = getLocalClient()
 
-	}else{
-		redisAddr := os.Getenv("REDIS_ADDR") // e.g., "prod-redis-host:6379"
-        redisPassword := os.Getenv("REDIS_PASSWORD") // e.g., "mysecretpassword"
+	} else {
+		redisAddr := os.Getenv("REDIS_ADDR")         // e.g., "prod-redis-host:6379"
+		redisPassword := os.Getenv("REDIS_PASSWORD") // e.g., "mysecretpassword"
 
-        rdb = redis.NewClient(&redis.Options{
-            Addr:     redisAddr,
-            Password: redisPassword, // no password set for empty string
-            DB:       0, // default DB
-        })
+		rdb = redis.NewClient(&redis.Options{
+			Addr:     redisAddr,
+			Password: redisPassword, // no password set for empty string
+			DB:       0,             // default DB
+		})
 	}
-	
+
 	if err != nil {
 		panic(fmt.Sprintf("Redis Initialization failed for env%s with error %s", config.Get().Env, err))
 	}
