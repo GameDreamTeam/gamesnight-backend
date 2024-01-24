@@ -43,7 +43,9 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, *game)
+	randomPhraseMap := services.GetGameService().RemoveGuessedPhrases(gameId, currentPhraseMap)
+
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(randomPhraseMap, *game)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
