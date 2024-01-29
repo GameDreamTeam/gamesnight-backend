@@ -58,6 +58,7 @@ func StartGameController(c *gin.Context) {
 		return
 	}
 
+	PhraseMap = services.GetGameService().RandomizePhrases(PhraseMap)
 	err = services.GetGameService().SetCurrentPhraseMap(gameId, PhraseMap)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)

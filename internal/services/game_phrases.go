@@ -74,6 +74,14 @@ func (gs *GameService) GetCurrentPhraseMap(game models.Game) (models.PhraseStatu
 	return currentGamePhraseMap, nil
 }
 
+func (gs *GameService) RandomizePhrases(phraseMap models.PhraseStatusMap) models.PhraseStatusMap {
+	rand.Shuffle(len(phraseMap.Phrases), func(i, j int) {
+		phraseMap.Phrases[i], phraseMap.Phrases[j] = phraseMap.Phrases[j], phraseMap.Phrases[i]
+		phraseMap.Status[i], phraseMap.Status[j] = phraseMap.Status[j], phraseMap.Status[i]
+	})
+	return phraseMap
+}
+
 func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.PhraseStatusMap) models.PhraseStatusMap {
 	var newPhrases []models.Phrase
 	var newStatus []models.PhraseStatus
@@ -85,13 +93,14 @@ func (gs *GameService) RemoveGuessedPhrases(gameId string, phraseMap models.Phra
 		}
 	}
 
-	rand.Shuffle(len(newPhrases), func(i, j int) { newPhrases[i], newPhrases[j] = newPhrases[j], newPhrases[i] })
-
 	newMap := models.PhraseStatusMap{
 		Phrases: newPhrases,
 		Status:  newStatus,
 	}
-	database.SetCurrentPhraseMap(gameId, newMap)
+
+	randomizedMap := gs.RandomizePhrases(newMap)
+
+	database.SetCurrentPhraseMap(gameId, randomizedMap)
 
 	return newMap
 }

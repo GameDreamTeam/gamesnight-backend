@@ -4,6 +4,8 @@ import (
 	"gamesnight/internal/database"
 	"gamesnight/internal/logger"
 	"gamesnight/internal/models"
+
+	"go.uber.org/zap"
 )
 
 type GameService struct{}
@@ -19,6 +21,7 @@ func GetGameService() *GameService {
 }
 
 func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) {
+	logger := logger.GetLogger().Logger
 	gameId, err := GetKeyGenerator().CreateGameKey()
 
 	if err != nil {
@@ -48,11 +51,20 @@ func (gs *GameService) CreateNewGame(playerId string) (*models.GameMeta, error) 
 		GameState: models.PlayersJoining,
 	}
 
-	logger.GetLogger().Logger.Info("player:" + playerId + " created game:" + gameId + " successfully")
-
 	// Use go routines here for concurrency and better speed
-	database.SetGameMeta(&gameMeta)
-	database.SetGame(&game)
+	err = database.SetGameMeta(&gameMeta)
+	if err != nil {
+		logger.Error("GameId:"+gameId, zap.Any("error", err))
+		return nil, err
+	}
+
+	err = database.SetGame(&game)
+	if err != nil {
+		logger.Error("GameId:"+gameId, zap.Any("error", err))
+		return nil, err
+	}
+	logger.Error("GameId:"+gameId, zap.Any("error", err))
+	logger.Info("player:" + playerId + " created game:" + gameId + " successfully")
 
 	return &gameMeta, nil
 }

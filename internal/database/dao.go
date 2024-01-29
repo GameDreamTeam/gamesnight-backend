@@ -77,7 +77,7 @@ func SetGameMeta(gameMeta *models.GameMeta) error {
 
 	jsonGame, err := json.Marshal(gameMeta)
 	if err != nil {
-		return errors.Wrap(err, "Game json conversion failed while setting game")
+		return errors.Wrap(err, "Game json conversion failed")
 	}
 
 	err = rc.Client.Set(key, jsonGame, 24*time.Hour).Err()
@@ -207,7 +207,7 @@ func GetPlayerPhrases(playerId string) (*models.PhraseList, error) {
 }
 
 func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) error {
-	key := GetCurrentPhraseMapKey(gameId)
+	key := GetCurrentPhraseMapKey(gameId + "current")
 
 	jsonMap, err := json.Marshal(phraseStatusMap)
 	if err != nil {
@@ -224,7 +224,7 @@ func SetCurrentPhraseMap(gameId string, phraseStatusMap models.PhraseStatusMap) 
 
 // This is business logic creeping into database access layer
 func GetCurrentPhraseMap(gameId string) (models.PhraseStatusMap, error) {
-	key := GetCurrentPhraseMapKey(gameId)
+	key := GetCurrentPhraseMapKey(gameId + "current")
 	result, err := rc.Client.Get(key).Result()
 	if err != nil {
 		if err == redis.Nil {

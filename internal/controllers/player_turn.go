@@ -2,14 +2,12 @@ package controllers
 
 import (
 	"errors"
-	"gamesnight/internal/logger"
+	"fmt"
 	"gamesnight/internal/models"
 	"gamesnight/internal/services"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func StartTurnController(c *gin.Context) {
@@ -43,9 +41,7 @@ func StartTurnController(c *gin.Context) {
 		return
 	}
 
-	randomPhraseMap := services.GetGameService().RemoveGuessedPhrases(gameId, currentPhraseMap)
-
-	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(randomPhraseMap, *game)
+	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, *game)
 	if err != nil {
 		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
@@ -69,14 +65,9 @@ func PlayerGuessController(c *gin.Context) {
 		return
 	}
 
-	if *player.Id != *game.CurrentPlayer.Id {
-		logger.GetLogger().Logger.Error(
-			"player making guess should be current player",
-			zap.Any("game", game),
-			zap.Any("player", player),
-		)
-		SendResponse(c, http.StatusInternalServerError, nil,
-			errors.New("player making guess should be current player"))
+	err = services.GetGameService().CheckCurrentPlayer(*player.Id, *game.CurrentPlayer.Id)
+	if err != nil {
+		SendResponse(c, http.StatusForbidden, nil, errors.New("player starting turn should be current player"))
 		return
 	}
 
@@ -95,9 +86,8 @@ func PlayerGuessController(c *gin.Context) {
 
 	game, err = services.GetGameService().GetGame(gameId)
 	PhraseToBeGuessed, err := services.GetGameService().GetPhraseToBeGuessed(currentPhraseMap, *game)
-
 	if err != nil {
-		SendResponse(c, http.StatusOK, PhraseToBeGuessed, nil)
+		SendResponse(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
@@ -142,7 +132,6 @@ func EndTurnController(c *gin.Context) {
 	}
 
 	updatedPhraseMap := services.GetGameService().RemoveGuessedPhrases(gameId, currentPhraseMap)
-
-	models.TurnStartTime = time.Time{}
+	fmt.Println(updatedPhraseMap)
 	SendResponse(c, http.StatusOK, updatedPhraseMap, nil)
 }

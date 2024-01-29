@@ -12,9 +12,9 @@ import (
 func (gs *GameService) GetPhraseToBeGuessed(currentPhrases models.PhraseStatusMap, game models.Game) (string, error) {
 	phraseIndex := game.CurrentPhraseMapIndex
 	if phraseIndex >= len(currentPhrases.Phrases) {
-		game.GameState = models.Finished
-		database.SetGame(&game)
-		return "the game has ended", nil
+		// game, _ := GetPlayerService().NextPlayerAndTeam(game.GameId)
+		// database.SetGame(game)
+		return "nil", errors.New("all phrases were shown")
 	}
 
 	phrase := currentPhrases.Phrases[phraseIndex]
