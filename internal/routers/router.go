@@ -44,4 +44,9 @@ func SetupRouter(r *gin.Engine) {
 
 		api.POST("/feedback", controllers.SubmitFeedbackController)
 	}
+
+	api2 := r.Group("/v1")
+	{
+		api2.POST("/feedback", controllers.SubmitFeedbackByEmailController)
+	}
 }
