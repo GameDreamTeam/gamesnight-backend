@@ -1,4 +1,4 @@
-name: Deploy Go Backend to ECR and EC2
+name: Push backend docker image to ecr
 
 on:
   push:
@@ -13,42 +13,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Build Go Backend
+      - name: Build docker image
         run: |
-          cd path/to/your/go/backend
-          go build -o myapp
+          docker build -t 528424611106.dkr.ecr.eu-north-1.amazonaws.com/gamesnight:backend .
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          registry: ${{ secrets.AWS_ECR_REGISTRY }}
-          region: ${{ secrets.AWS_REGION }}
+          role-to-assume: 'arn:aws:iam::528424611106:role/GITHUB_USER'
+          role-session-name: githubrolesession
+          aws-region: eu-north-1    
 
-      - name: Build and Push to ECR
+      - uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Push to ECR
         run: |
-          docker buildx create --use
-          docker buildx inspect --bootstrap
-          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.AWS_ECR_REGISTRY }}/mygoapp:latest -t ${{ secrets.AWS_ECR_REGISTRY }}/mygoapp:${{ github.sha }} .
-          docker push ${{ secrets.AWS_ECR_REGISTRY }}/mygoapp:latest
-          docker push ${{ secrets.AWS_ECR_REGISTRY }}/mygoapp:${{ github.sha }}
-
-      - name: SSH into EC2 and Pull/Run Docker Image
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: |
-            docker login -u AWS -p $(aws ecr get-login-password --region ${{ secrets.AWS_REGION }}) ${{ secrets.AWS_ECR_REGISTRY }}
-            docker pull ${{ secrets.AWS_ECR_REGISTRY }}/mygoapp:${{ github.sha }}
-            docker run -d -p 8080:8080 ${{ secrets.AWS_ECR_REGISTRY }}/mygoapp:${{ github.sha }}
-
+          docker push 528424611106.dkr.ecr.eu-north-1.amazonaws.com/gamesnight:backend
